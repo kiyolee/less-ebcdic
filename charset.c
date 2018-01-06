@@ -17,7 +17,9 @@
 #if HAVE_LOCALE
 #include <locale.h>
 #include <ctype.h>
+#ifndef WIN32
 #include <langinfo.h>
+#endif
 #endif
 
 #include "charset.h"
@@ -115,7 +117,7 @@ static char chardef[256];
 static char *binfmt = NULL;
 static char *utfbinfmt = NULL;
 public int binattr = AT_STANDOUT;
-
+public int has_binary_char = 0;
 
 /*
  * Define a charset, given a description string.
@@ -301,7 +303,7 @@ setbinfmt(s, fmtvarptr, default_fmt)
  *
  */
 	static void
-set_charset()
+set_charset_org()
 {
 	char *s;
 
@@ -366,6 +368,23 @@ set_charset()
 	(void) icharset("latin1", 1);
 #endif
 #endif
+}
+
+	static void
+set_charset()
+{
+	register int i;
+
+	set_charset_org();
+
+	for (i = 0; i < (int) sizeof(chardef); i++)
+	{
+		if (chardef[i] & IS_BINARY_CHAR)
+		{
+			has_binary_char = 1;
+			break;
+		}
+	}
 }
 
 /*

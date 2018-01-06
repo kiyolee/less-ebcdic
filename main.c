@@ -53,11 +53,17 @@ extern int	jump_sline;
 static char consoleTitle[256];
 #endif
 
+extern int	ebcdic_conv;
 extern int	less_is_more;
 extern int	missing_cap;
 extern int	know_dumb;
 extern int	pr_type;
 
+static const char *filebase(const char *fn);
+
+#if MSDOS_COMPILER
+#define strncasecmp(s1,s2,n) strnicmp(s1,s2,n)
+#endif
 
 /*
  * Entry point.
@@ -69,6 +75,7 @@ main(argc, argv)
 {
 	IFILE ifile;
 	char *s;
+	const char *progbase;
 
 #ifdef __EMX__
 	_response(&argc, &argv);
@@ -117,6 +124,11 @@ main(argc, argv)
 	init_cmdhist();
 	init_option();
 	init_search();
+
+	progbase = filebase(progname);
+	if (strncasecmp(progbase, "eless", 5) == 0
+		&& (progbase[5] == '.' || progbase[5] == '\0'))
+		ebcdic_conv = OPT_ON;
 
 	/*
 	 * If the name of the executable program is "more",
@@ -407,4 +419,16 @@ quit(status)
 #endif
 	close_getchr();
 	exit(status);
+}
+
+static const char *
+filebase(const char *fn)
+{
+	register size_t l = strlen(fn);
+	register const char *cp = fn + l - 1;
+	while (l > 0 && *cp != '\\' && *cp != '/')
+	{
+		l--; cp--;
+	}
+	return cp+1;
 }

@@ -56,6 +56,7 @@ public int opt_use_backslash;	/* Use backslash escaping in option parsing */
 #if HILITE_SEARCH
 public int hilite_search;	/* Highlight matched search patterns? */
 #endif
+public int ebcdic_conv;		/* Basic EBCDIC to ASCII conversion */
 
 public int less_is_more = 0;	/* Make compatible with POSIX more */
 
@@ -113,6 +114,7 @@ static struct optname quote_optname  = { "quotes",               NULL };
 static struct optname tilde_optname  = { "tilde",                NULL };
 static struct optname query_optname  = { "help",                 NULL };
 static struct optname pound_optname  = { "shift",                NULL };
+static struct optname perc_optname   = { "ebcdic",               NULL };
 static struct optname keypad_optname = { "no-keypad",            NULL };
 static struct optname oldbot_optname = { "old-bot",              NULL };
 static struct optname follow_optname = { "follow-name",          NULL };
@@ -141,7 +143,6 @@ static struct loption option[] =
 			"Search includes all of displayed screen"
 		}
 	},
-
 	{ 'b', &b_optname,
 		NUMBER|INIT_HANDLER, 64, &bufspace, opt_b, 
 		{
@@ -421,6 +422,14 @@ static struct loption option[] =
 		{
 			"Horizontal shift: ",
 			"0123456789.",
+			NULL
+		}
+	},
+	{ '%', &perc_optname,
+		BOOL, OPT_OFF, &ebcdic_conv, NULL,
+		{
+			"Enable basic EBCDIC to ASCII conversion",
+			"Disable basic EBCDIC to ASCII conversion",
 			NULL
 		}
 	},

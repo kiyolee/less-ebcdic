@@ -31,6 +31,7 @@ extern void constant *ml_examine;
 extern char openquote;
 extern char closequote;
 #endif
+extern int ebcdic_conv; 
 
 #if LOGFILE
 extern int logfile;
@@ -358,19 +359,55 @@ edit_ifile(ifile)
 	} else 
 	{
 		chflags |= CH_CANSEEK;
-		if (!force_open && !opened(ifile) && bin_file(f))
+		if (!force_open && !opened(ifile))
 		{
-			/*
-			 * Looks like a binary file.  
-			 * Ask user if we should proceed.
-			 */
-			parg.p_string = filename;
-			answer = query("\"%s\" may be a binary file.  See it anyway? ",
-				&parg);
-			if (answer != 'y' && answer != 'Y')
+			int b = bin_file(f);
+			if (b == -1)
 			{
-				close(f);
-				goto err1;
+				/* Cannot detect, nothing to do */
+			}
+			else if (b == 1)
+			{
+				/*
+				 * Looks like a binary file.
+				 * Ask user if we should proceed.
+				 */
+				parg.p_string = filename;
+				answer = query("\"%s\" may be a binary file.  See it anyway? ",
+					&parg);
+				if (answer != 'y' && answer != 'Y')
+				{
+					close(f);
+					goto err1;
+				}
+			}
+			else if (b == 2 && !ebcdic_conv)
+			{
+				/*
+				 * Looks like an EBCDIC file.
+				 * Ask user if we should proceed with EBCDIC->ASCII conversion.
+				 */
+				parg.p_string = filename;
+				answer = query("\"%s\" may be an EBCDIC file.  See it with conversion to ASCII? ",
+					&parg);
+				if (answer == 'y' || answer == 'Y')
+				{
+					ebcdic_conv = OPT_ON;
+				}
+			}
+			else if (b == 0 && ebcdic_conv)
+			{
+				/*
+				 * Looks like an ASCII file but requested for EBCDIC->ASCII conversion.
+				 * Ask user if we should proceed without conversion.
+				 */
+				parg.p_string = filename;
+				answer = query("\"%s\" may be an ASCII file.  See it without conversion from EBCDIC? ",
+					&parg);
+				if (answer == 'y' || answer == 'Y')
+				{
+					ebcdic_conv = OPT_OFF;
+				}
 			}
 		}
 	}

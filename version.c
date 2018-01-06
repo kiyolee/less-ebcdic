@@ -807,4 +807,4 @@ v486  10/22/16  New commands ESC-{ and ESC-} to shift to start/end of
 v487  10/23/16  configure --help formatting.
 */
 
-char version[] = "487";
+char version[] = "487+ebcdic";

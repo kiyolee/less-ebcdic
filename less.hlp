@@ -201,6 +201,8 @@
                   Don't display tildes after end of file.
   -# [_N]  ....  --shift=[_N]
                   Horizontal scroll amount (0 = one half screen width)
+  -%  ........  --ebcdic
+                  Enable basic EBCDIC to ASCII conversion.
       ........  --no-keypad
                   Don't send termcap keypad init/deinit strings.
       ........  --follow-name

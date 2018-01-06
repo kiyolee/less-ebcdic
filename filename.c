@@ -58,6 +58,9 @@ extern IFILE old_ifile;
 extern char openquote;
 extern char closequote;
 #endif
+extern int has_binary_char;
+
+extern void ebcdic_to_ascii(char *buf, int sz);
 
 /*
  * Remove quotes around a filename.
@@ -462,50 +465,85 @@ fcomplete(s)
 }
 #endif
 
+	static int
+text_score(data, n, ts)
+	char *data;
+	int n;
+	int *ts;
+{
+	register int s = 0;
+	register int s2 = 0;
+	char* p;
+	char* pend = &data[n];
+	for (p = data;  p < pend;  )
+	{
+		LWCHAR c = step_char(&p, +1, pend);
+		if (ctldisp == OPT_ONPLUS && IS_CSI_START(c))
+		{
+			do {
+				c = step_char(&p, +1, pend);
+			} while (p < pend && is_ansi_middle(c));
+		} else if (!binary_char(c))
+		{
+			s++;
+			s2++;
+			/* give higher score to lower range characters */
+			if (!(c & ~0x7f)) s2++;
+		}
+	}
+	*ts = s2;
+	return (s);
+}
+
 /*
- * Try to determine if a file is "binary".
+ * Try to determine if a file is "binary" or "ebcdic".
  * This is just a guess, and we need not try too hard to make it accurate.
+ * return 0 - ascii text, 1 - binary, 2 - ebcdic text, -1 - not detected.
  */
 	public int
 bin_file(f)
 	int f;
 {
-	int n;
-	int bin_count = 0;
-	char data[256];
-	char* p;
-	char* pend;
-
-	if (!seekable(f))
-		return (0);
-	if (lseek(f, (off_t)0, SEEK_SET) == BAD_LSEEK)
-		return (0);
-	n = read(f, data, sizeof(data));
-	if (n <= 0)
-		return (0);
-	if (utf_mode)
-	{
-		bin_count = utf_bin_count(data, n);
-	} else
-	{
-		pend = &data[n];
-		for (p = data;  p < pend;  )
-		{
-			LWCHAR c = step_char(&p, +1, pend);
-			if (ctldisp == OPT_ONPLUS && IS_CSI_START(c))
-			{
-				do {
-					c = step_char(&p, +1, pend);
-				} while (p < pend && is_ansi_middle(c));
-			} else if (binary_char(c))
-				bin_count++;
-		}
-	}
 	/*
-	 * Call it a binary file if there are more than 5 binary characters
-	 * in the first 256 bytes of the file.
-	 */
-	return (bin_count > 5);
+	*  Detection makes no sense if there is
+	*  no defined binary character.
+	*/
+	if (has_binary_char)
+	{
+		int n, l;
+		char data[256];
+		int as, as2, es, es2;
+		int is_bin;
+		int bin_count = 0;
+
+		if (!seekable(f))
+			return (0);
+		if (lseek(f, (off_t)0, SEEK_SET) == BAD_LSEEK)
+			return (0);
+		n = read(f, data, sizeof(data));
+		if (n <= 0)
+			return (-1);
+		if (utf_mode)
+			bin_count = utf_bin_count(data, n);
+		l = n - (n/10);
+		as = text_score(data, n, &as2);
+		ebcdic_to_ascii(data, n);
+		es = text_score(data, n, &es2);
+		is_bin = (as < l && es < l);
+		/* favour ascii over ebcdic */
+		if (!is_bin && (as2 < es2))
+			return (2);
+		if (is_bin && !utf_mode)
+			return (1);
+		/*
+		 * Call it a binary file if there are more than 5 binary characters
+		 * in the first 256 bytes of the file.
+		 */
+		if (utf_mode && bin_count > 5)
+			return (1);
+		return (0);
+	}
+	return (-1);
 }
 
 /*
@@ -570,7 +608,9 @@ readfd(fd)
 
 #if HAVE_POPEN
 
-FILE *popen();
+#ifndef WIN32
+FILE *popen(const char*, const char*);
+#endif
 
 /*
  * Execute a shell command.
