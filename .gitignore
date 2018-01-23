@@ -6,6 +6,7 @@
 *.swp
 *~
 Makefile
+autom4te.cache
 build-*/*/Debug
 build-*/*/Release
 build-*/*/x64/Debug
