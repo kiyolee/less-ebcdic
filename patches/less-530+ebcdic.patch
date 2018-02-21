@@ -1,0 +1,581 @@
+diff -N -C3 -r less-530/charset.c less-530+ebcdic/charset.c
+*** less-530/charset.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/charset.c	2018-02-21 13:41:50.396437756 +1100
+***************
+*** 17,24 ****
+--- 17,26 ----
+  #if HAVE_LOCALE
+  #include <locale.h>
+  #include <ctype.h>
++ #ifndef WIN32
+  #include <langinfo.h>
+  #endif
++ #endif
+  
+  #include "charset.h"
+  
+***************
+*** 122,128 ****
+  static char *binfmt = NULL;
+  static char *utfbinfmt = NULL;
+  public int binattr = AT_STANDOUT;
+! 
+  
+  /*
+   * Define a charset, given a description string.
+--- 124,130 ----
+  static char *binfmt = NULL;
+  static char *utfbinfmt = NULL;
+  public int binattr = AT_STANDOUT;
+! public int has_binary_char = 0;
+  
+  /*
+   * Define a charset, given a description string.
+***************
+*** 315,321 ****
+   *
+   */
+  	static void
+! set_charset()
+  {
+  	char *s;
+  
+--- 317,323 ----
+   *
+   */
+  	static void
+! set_charset_org()
+  {
+  	char *s;
+  
+***************
+*** 391,396 ****
+--- 393,415 ----
+  #endif
+  }
+  
++ 	static void
++ set_charset()
++ {
++ 	int i;
++ 
++ 	set_charset_org();
++ 
++ 	for (i = 0; i < (int) sizeof(chardef); i++)
++ 	{
++ 		if (chardef[i] & IS_BINARY_CHAR)
++ 		{
++ 			has_binary_char = 1;
++ 			break;
++ 		}
++ 	}
++ }
++ 
+  /*
+   * Initialize charset data structures.
+   */
+diff -N -C3 -r less-530/ch.c less-530+ebcdic/ch.c
+*** less-530/ch.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/ch.c	2018-02-21 13:42:11.953791108 +1100
+***************
+*** 139,144 ****
+--- 139,146 ----
+  
+  static int ch_addbuf();
+  
++ extern int ebcdic_conv;
++ void ebcdic_to_ascii(char *buf, int sz);
+  
+  /*
+   * Get the character pointed to by the read pointer.
+***************
+*** 265,270 ****
+--- 267,274 ----
+  	{
+  		n = iread(ch_file, &bp->data[bp->datasize], 
+  			(unsigned int)(LBUFSIZE - bp->datasize));
++ 		if (ebcdic_conv && n > 0)
++ 			ebcdic_to_ascii(bp->data + bp->datasize, n);
+  	}
+  
+  	if (n == READ_INTR)
+***************
+*** 971,973 ****
+--- 975,1020 ----
+  	}
+  }
+  #endif
++ 
++ static const char ebcdic_to_ascii_tab[256] = {
++ 	'\x00', '\x01', '\x02', '\x03', '\x9c', '\x09', '\x86', '\x7f',
++ 	'\x97', '\x8d', '\x8e', '\x0b', '\x0c', '\x0d', '\x0e', '\x0f',
++ 	'\x10', '\x11', '\x12', '\x13', '\x9d', '\x85', '\x08', '\x87',
++ 	'\x18', '\x19', '\x92', '\x8f', '\x1c', '\x1d', '\x1e', '\x1f',
++ 	'\x80', '\x81', '\x82', '\x83', '\x84', '\x0a', '\x17', '\x1b',
++ 	'\x88', '\x89', '\x8a', '\x8b', '\x8c', '\x05', '\x06', '\x07',
++ 	'\x90', '\x91', '\x16', '\x93', '\x94', '\x95', '\x96', '\x04',
++ 	'\x98', '\x99', '\x9a', '\x9b', '\x14', '\x15', '\x9e', '\x1a',
++ 	'\x20', '\xa0', '\xe2', '\xe4', '\xe0', '\xe1', '\xe3', '\xe5',
++ 	'\xe7', '\xf1', '\xa2', '\x2e', '\x3c', '\x28', '\x2b', '\x7c',
++ 	'\x26', '\xe9', '\xea', '\xeb', '\xe8', '\xed', '\xee', '\xef',
++ 	'\xec', '\xdf', '\x21', '\x24', '\x2a', '\x29', '\x3b', '\xac',
++ 	'\x2d', '\x2f', '\xc2', '\xc4', '\xc0', '\xc1', '\xc3', '\xc5',
++ 	'\xc7', '\xd1', '\xa6', '\x2c', '\x25', '\x5f', '\x3e', '\x3f',
++ 	'\xf8', '\xc9', '\xca', '\xcb', '\xc8', '\xcd', '\xce', '\xcf',
++ 	'\xcc', '\x60', '\x3a', '\x23', '\x40', '\x27', '\x3d', '\x22',
++ 	'\xd8', '\x61', '\x62', '\x63', '\x64', '\x65', '\x66', '\x67',
++ 	'\x68', '\x69', '\xab', '\xbb', '\xf0', '\xfd', '\xfe', '\xb1',
++ 	'\xb0', '\x6a', '\x6b', '\x6c', '\x6d', '\x6e', '\x6f', '\x70',
++ 	'\x71', '\x72', '\xaa', '\xba', '\xe6', '\xb8', '\xc6', '\xa4',
++ 	'\xb5', '\x7e', '\x73', '\x74', '\x75', '\x76', '\x77', '\x78',
++ 	'\x79', '\x7a', '\xa1', '\xbf', '\xd0', '\xdd', '\xde', '\xae',
++ 	'\x5e', '\xa3', '\xa5', '\xb7', '\xa9', '\xa7', '\xb6', '\xbc',
++ 	'\xbd', '\xbe', '\x5b', '\x5d', '\xaf', '\xa8', '\xb4', '\xd7',
++ 	'\x7b', '\x41', '\x42', '\x43', '\x44', '\x45', '\x46', '\x47',
++ 	'\x48', '\x49', '\xad', '\xf4', '\xf6', '\xf2', '\xf3', '\xf5',
++ 	'\x7d', '\x4a', '\x4b', '\x4c', '\x4d', '\x4e', '\x4f', '\x50',
++ 	'\x51', '\x52', '\xb9', '\xfb', '\xfc', '\xf9', '\xfa', '\xff',
++ 	'\x5c', '\xf7', '\x53', '\x54', '\x55', '\x56', '\x57', '\x58',
++ 	'\x59', '\x5a', '\xb2', '\xd4', '\xd6', '\xd2', '\xd3', '\xd5',
++ 	'\x30', '\x31', '\x32', '\x33', '\x34', '\x35', '\x36', '\x37',
++ 	'\x38', '\x39', '\xb3', '\xdb', '\xdc', '\xd9', '\xda', '\x9f',
++ };
++ 
++ 	void
++ ebcdic_to_ascii(char *buf, int sz)
++ {
++ 	int i;
++ 	for (i = 0; i < sz; i++, buf++)
++ 		*buf = ebcdic_to_ascii_tab[(unsigned char)*buf];
++ }
+diff -N -C3 -r less-530/defines.wn less-530+ebcdic/defines.wn
+*** less-530/defines.wn	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/defines.wn	2018-02-21 12:35:49.000000000 +1100
+***************
+*** 251,257 ****
+  #define MUST_DEFINE_OSPEED 0
+  
+  /* Define HAVE_LOCALE if you have locale.h and setlocale. */
+! #define HAVE_LOCALE 0
+  
+  /* Define HAVE_TERMIOS_FUNCS if you have tcgetattr/tcsetattr */
+  #define HAVE_TERMIOS_FUNCS 0
+--- 251,257 ----
+  #define MUST_DEFINE_OSPEED 0
+  
+  /* Define HAVE_LOCALE if you have locale.h and setlocale. */
+! #define HAVE_LOCALE 1
+  
+  /* Define HAVE_TERMIOS_FUNCS if you have tcgetattr/tcsetattr */
+  #define HAVE_TERMIOS_FUNCS 0
+diff -N -C3 -r less-530/edit.c less-530+ebcdic/edit.c
+*** less-530/edit.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/edit.c	2018-02-21 12:35:49.000000000 +1100
+***************
+*** 35,40 ****
+--- 35,41 ----
+  extern char openquote;
+  extern char closequote;
+  #endif
++ extern int ebcdic_conv; 
+  
+  #if LOGFILE
+  extern int logfile;
+***************
+*** 406,424 ****
+  		} else 
+  		{
+  			chflags |= CH_CANSEEK;
+! 			if (!force_open && !opened(ifile) && bin_file(f))
+  			{
+! 				/*
+! 				 * Looks like a binary file.  
+! 				 * Ask user if we should proceed.
+! 				 */
+! 				parg.p_string = filename;
+! 				answer = query("\"%s\" may be a binary file.  See it anyway? ",
+! 					&parg);
+! 				if (answer != 'y' && answer != 'Y')
+  				{
+! 					close(f);
+! 					goto err1;
+  				}
+  			}
+  		}
+--- 407,461 ----
+  		} else 
+  		{
+  			chflags |= CH_CANSEEK;
+! 			if (!force_open && !opened(ifile))
+  			{
+! 				int b = bin_file(f);
+! 				if (b == -1)
+! 				{
+! 					/* Cannot detect, nothing to do */
+! 				}
+! 				else if (b == 1)
+! 				{
+! 					/*
+! 					 * Looks like a binary file.
+! 					 * Ask user if we should proceed.
+! 					 */
+! 					parg.p_string = filename;
+! 					answer = query("\"%s\" may be a binary file.  See it anyway? ",
+! 						&parg);
+! 					if (answer != 'y' && answer != 'Y')
+! 					{
+! 						close(f);
+! 						goto err1;
+! 					}
+! 				}
+! 				else if (b == 2 && !ebcdic_conv)
+! 				{
+! 					/*
+! 					 * Looks like an EBCDIC file.
+! 					 * Ask user if we should proceed with EBCDIC->ASCII conversion.
+! 					 */
+! 					parg.p_string = filename;
+! 					answer = query("\"%s\" may be an EBCDIC file.  See it with conversion to ASCII? ",
+! 						&parg);
+! 					if (answer == 'y' || answer == 'Y')
+! 					{
+! 						ebcdic_conv = OPT_ON;
+! 					}
+! 				}
+! 				else if (b == 0 && ebcdic_conv)
+  				{
+! 					/*
+! 					 * Looks like an ASCII file but requested for EBCDIC->ASCII conversion.
+! 					 * Ask user if we should proceed without conversion.
+! 					 */
+! 					parg.p_string = filename;
+! 					answer = query("\"%s\" may be an ASCII file.  See it without conversion from EBCDIC? ",
+! 						&parg);
+! 					if (answer == 'y' || answer == 'Y')
+! 					{
+! 						ebcdic_conv = OPT_OFF;
+! 					}
+  				}
+  			}
+  		}
+diff -N -C3 -r less-530/filename.c less-530+ebcdic/filename.c
+*** less-530/filename.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/filename.c	2018-02-21 13:41:22.732833996 +1100
+***************
+*** 54,59 ****
+--- 54,62 ----
+  extern char openquote;
+  extern char closequote;
+  #endif
++ extern int has_binary_char;
++ 
++ extern void ebcdic_to_ascii(char *buf, int sz);
+  
+  /*
+   * Remove quotes around a filename.
+***************
+*** 455,482 ****
+  }
+  #endif
+  
+! /*
+!  * Try to determine if a file is "binary".
+!  * This is just a guess, and we need not try too hard to make it accurate.
+!  */
+! 	public int
+! bin_file(f)
+! 	int f;
+! {
+  	int n;
+  	int bin_count = 0;
+- 	char data[256];
+  	char* p;
+! 	char* edata;
+! 
+! 	if (!seekable(f))
+! 		return (0);
+! 	if (lseek(f, (off_t)0, SEEK_SET) == BAD_LSEEK)
+! 		return (0);
+! 	n = read(f, data, sizeof(data));
+! 	if (n <= 0)
+! 		return (0);
+! 	edata = &data[n];
+  	for (p = data;  p < edata;  )
+  	{
+  		if (utf_mode && !is_utf8_well_formed(p, edata-data))
+--- 458,476 ----
+  }
+  #endif
+  
+! 	static void
+! text_score(data, n, _text_count, _text_lr_count, _bin_count)
+! 	char *data;
+  	int n;
++ 	int *_text_count;
++ 	int *_text_lr_count;
++ 	int *_bin_count;
++ {
++ 	int text_count = 0;
++ 	int text_lr_count = 0;
+  	int bin_count = 0;
+  	char* p;
+! 	char* edata = &data[n];
+  	for (p = data;  p < edata;  )
+  	{
+  		if (utf_mode && !is_utf8_well_formed(p, edata-data))
+***************
+*** 490,502 ****
+  				skip_ansi(&p, edata);
+  			else if (binary_char(c))
+  				bin_count++;
+  		}
+  	}
+  	/*
+  	 * Call it a binary file if there are more than 5 binary characters
+  	 * in the first 256 bytes of the file.
+  	 */
+! 	return (bin_count > 5);
+  }
+  
+  /*
+--- 484,550 ----
+  				skip_ansi(&p, edata);
+  			else if (binary_char(c))
+  				bin_count++;
++ 			else
++ 			{
++ 				text_count++;
++ 				text_lr_count++;
++ 				/* give higher score to lower range characters */
++ 				if (!(c & ~0x7f)) text_lr_count++;
++ 			}
+  		}
+  	}
++ 	*_text_count = text_count;
++ 	*_text_lr_count = text_lr_count;
++ 	*_bin_count = bin_count;
++ }
++ 
++ /*
++  * Try to determine if a file is "binary" or "ebcdic".
++  * This is just a guess, and we need not try too hard to make it accurate.
++  * return 0 - ascii text, 1 - binary, 2 - ebcdic text, -1 - not detected.
++  */
++ 	public int
++ bin_file(f)
++ 	int f;
++ {
++ 	int n, l;
++ 	char data[256];
++ 	int a_text_count, a_text_lr_count, a_bin_count;
++ 	int e_text_count, e_text_lr_count, e_bin_count;
++ 	int is_bin;
++ 
++ 	if (!seekable(f))
++ 		return (0);
++ 	if (lseek(f, (off_t)0, SEEK_SET) == BAD_LSEEK)
++ 		return (0);
++ 	n = read(f, data, sizeof(data));
++ 	if (n <= 0)
++ 		return (0);
++ 
++ 	/*
++ 	 * Detection makes no sense if there is no defined binary character.
++ 	 */
++ 	if (!utf_mode && !has_binary_char)
++ 		return (-1);
++ 
++ 	text_score(data, n, &a_text_count, &a_text_lr_count, &a_bin_count);
++ 	ebcdic_to_ascii(data, n);
++ 	text_score(data, n, &e_text_count, &e_text_lr_count, &e_bin_count);
++ 
++ 	l = n - (n/10);
++ 	is_bin = (a_text_count < l && e_text_count < l);
++ 	/* Favour ascii over ebcdic. */
++ 	if (!is_bin && (a_text_lr_count < e_text_lr_count))
++ 		return (2);
++ 	if (is_bin && !utf_mode)
++ 		return (1);
+  	/*
+  	 * Call it a binary file if there are more than 5 binary characters
+  	 * in the first 256 bytes of the file.
+  	 */
+! 	if (utf_mode && a_bin_count > 5)
+!         return (1);
+!     return (0);
+  }
+  
+  /*
+***************
+*** 561,567 ****
+  
+  #if HAVE_POPEN
+  
+! FILE *popen();
+  
+  /*
+   * Execute a shell command.
+--- 609,617 ----
+  
+  #if HAVE_POPEN
+  
+! #ifndef WIN32
+! FILE *popen(const char*, const char*);
+! #endif
+  
+  /*
+   * Execute a shell command.
+diff -N -C3 -r less-530/help.c less-530+ebcdic/help.c
+*** less-530/help.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/help.c	2018-02-21 12:35:49.000000000 +1100
+***************
+*** 206,211 ****
+--- 206,213 ----
+  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','D','o','n','\'','t',' ','d','i','s','p','l','a','y',' ','t','i','l','d','e','s',' ','a','f','t','e','r',' ','e','n','d',' ','o','f',' ','f','i','l','e','.','\n',
+  ' ',' ','-','#',' ','[','_','\b','N',']',' ',' ','.','.','.','.',' ',' ','-','-','s','h','i','f','t','=','[','_','\b','N',']','\n',
+  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','H','o','r','i','z','o','n','t','a','l',' ','s','c','r','o','l','l',' ','a','m','o','u','n','t',' ','(','0',' ','=',' ','o','n','e',' ','h','a','l','f',' ','s','c','r','e','e','n',' ','w','i','d','t','h',')','\n',
++ ' ',' ','-','%',' ',' ','.','.','.','.','.','.','.','.',' ',' ','-','-','e','b','c','d','i','c','\n',
++ ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','E','n','a','b','l','e',' ','b','a','s','i','c',' ','E','B','C','D','I','C',' ','t','o',' ','A','S','C','I','I',' ','c','o','n','v','e','r','s','i','o','n','.','\n',
+  ' ',' ',' ',' ',' ',' ','.','.','.','.','.','.','.','.',' ',' ','-','-','n','o','-','k','e','y','p','a','d','\n',
+  ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','D','o','n','\'','t',' ','s','e','n','d',' ','t','e','r','m','c','a','p',' ','k','e','y','p','a','d',' ','i','n','i','t','/','d','e','i','n','i','t',' ','s','t','r','i','n','g','s','.','\n',
+  ' ',' ',' ',' ',' ',' ','.','.','.','.','.','.','.','.',' ',' ','-','-','f','o','l','l','o','w','-','n','a','m','e','\n',
+diff -N -C3 -r less-530/less.hlp less-530+ebcdic/less.hlp
+*** less-530/less.hlp	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/less.hlp	2018-02-21 12:35:49.000000000 +1100
+***************
+*** 203,208 ****
+--- 203,210 ----
+                    Don't display tildes after end of file.
+    -# [_N]  ....  --shift=[_N]
+                    Horizontal scroll amount (0 = one half screen width)
++   -%  ........  --ebcdic
++                   Enable basic EBCDIC to ASCII conversion.
+        ........  --no-keypad
+                    Don't send termcap keypad init/deinit strings.
+        ........  --follow-name
+diff -N -C3 -r less-530/main.c less-530+ebcdic/main.c
+*** less-530/main.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/main.c	2018-02-21 13:42:41.535159480 +1100
+***************
+*** 60,66 ****
+--- 60,73 ----
+  extern int	pr_type;
+  extern int	quit_if_one_screen;
+  
++ extern int	ebcdic_conv;
+  
++ static const char *filebase(const char *fn);
++ 
++ #if MSDOS_COMPILER
++ #define strncasecmp(s1,s2,n) strnicmp(s1,s2,n)
++ #endif
++  
+  /*
+   * Entry point.
+   */
+***************
+*** 71,76 ****
+--- 78,84 ----
+  {
+  	IFILE ifile;
+  	char *s;
++ 	const char *progbase;
+  
+  #ifdef __EMX__
+  	_response(&argc, &argv);
+***************
+*** 121,126 ****
+--- 129,139 ----
+  	init_option();
+  	init_search();
+  
++ 	progbase = filebase(progname);
++ 	if (strncasecmp(progbase, "eless", 5) == 0
++ 		&& (progbase[5] == '.' || progbase[5] == '\0'))
++ 		ebcdic_conv = OPT_ON;
++ 
+  	/*
+  	 * If the name of the executable program is "more",
+  	 * act like LESS_IS_MORE is set.
+***************
+*** 418,420 ****
+--- 431,445 ----
+  	close_getchr();
+  	exit(status);
+  }
++ 
++ static const char *
++ filebase(const char *fn)
++ {
++ 	size_t l = strlen(fn);
++ 	const char *cp = fn + l - 1;
++ 	while (l > 0 && *cp != '\\' && *cp != '/')
++ 	{
++ 		l--; cp--;
++ 	}
++ 	return cp+1;
++ }
+diff -N -C3 -r less-530/opttbl.c less-530+ebcdic/opttbl.c
+*** less-530/opttbl.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/opttbl.c	2018-02-21 12:35:49.000000000 +1100
+***************
+*** 58,63 ****
+--- 58,64 ----
+  #if HILITE_SEARCH
+  public int hilite_search;	/* Highlight matched search patterns? */
+  #endif
++ public int ebcdic_conv;		/* Basic EBCDIC to ASCII conversion */
+  
+  public int less_is_more = 0;	/* Make compatible with POSIX more */
+  
+***************
+*** 115,120 ****
+--- 116,122 ----
+  static struct optname tilde_optname  = { "tilde",                NULL };
+  static struct optname query_optname  = { "help",                 NULL };
+  static struct optname pound_optname  = { "shift",                NULL };
++ static struct optname perc_optname   = { "ebcdic",               NULL };
+  static struct optname keypad_optname = { "no-keypad",            NULL };
+  static struct optname oldbot_optname = { "old-bot",              NULL };
+  static struct optname follow_optname = { "follow-name",          NULL };
+***************
+*** 144,150 ****
+  			"Search includes all of displayed screen"
+  		}
+  	},
+- 
+  	{ 'b', &b_optname,
+  		NUMBER|INIT_HANDLER, 64, &bufspace, opt_b, 
+  		{
+--- 146,151 ----
+***************
+*** 427,432 ****
+--- 428,441 ----
+  			NULL
+  		}
+  	},
++ 	{ '%', &perc_optname,
++ 		BOOL, OPT_OFF, &ebcdic_conv, NULL,
++ 		{
++ 			"Enable basic EBCDIC to ASCII conversion",
++ 			"Disable basic EBCDIC to ASCII conversion",
++ 			NULL
++ 		}
++ 	},
+  	{ OLETTER_NONE, &keypad_optname,
+  		BOOL|NO_TOGGLE, OPT_OFF, &no_keypad, NULL,
+  		{
+diff -N -C3 -r less-530/version.c less-530+ebcdic/version.c
+*** less-530/version.c	2017-12-06 09:56:50.000000000 +1100
+--- less-530+ebcdic/version.c	2018-02-21 12:35:49.000000000 +1100
+***************
+*** 855,858 ****
+  v530  12/2/17   Minor doc change and add missing VOID_PARAM.
+  */
+  
+! char version[] = "530";
+--- 855,858 ----
+  v530  12/2/17   Minor doc change and add missing VOID_PARAM.
+  */
+  
+! char version[] = "530+ebcdic";

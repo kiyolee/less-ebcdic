@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2016  Mark Nudelman
+ * Copyright (C) 1984-2017  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -53,18 +53,21 @@ extern int	jump_sline;
 static char consoleTitle[256];
 #endif
 
-extern int	ebcdic_conv;
+public int  line_count;
 extern int	less_is_more;
 extern int	missing_cap;
 extern int	know_dumb;
 extern int	pr_type;
+extern int	quit_if_one_screen;
+
+extern int	ebcdic_conv;
 
 static const char *filebase(const char *fn);
 
 #if MSDOS_COMPILER
 #define strncasecmp(s1,s2,n) strnicmp(s1,s2,n)
 #endif
-
+ 
 /*
  * Entry point.
  */
@@ -117,8 +120,9 @@ main(argc, argv)
 	 * Command line arguments override environment arguments.
 	 */
 	is_tty = isatty(1);
-	get_term();
 	init_cmds();
+	get_term();
+	expand_cmd_tables();
 	init_charset();
 	init_line();
 	init_cmdhist();
@@ -191,7 +195,6 @@ main(argc, argv)
 		ifile = get_ifile(FAKE_HELPFILE, ifile);
 	while (argc-- > 0)
 	{
-		char *filename;
 #if (MSDOS_COMPILER && MSDOS_COMPILER != DJGPPC)
 		/*
 		 * Because the "shell" doesn't expand filename patterns,
@@ -200,25 +203,24 @@ main(argc, argv)
 		 * Expand the pattern and iterate over the expanded list.
 		 */
 		struct textlist tlist;
+		char *filename;
 		char *gfilename;
+		char *qfilename;
 		
 		gfilename = lglob(*argv++);
 		init_textlist(&tlist, gfilename);
 		filename = NULL;
 		while ((filename = forw_textlist(&tlist, filename)) != NULL)
 		{
-			(void) get_ifile(filename, ifile);
+			qfilename = shell_unquote(filename);
+			(void) get_ifile(qfilename, ifile);
+			free(qfilename);
 			ifile = prev_ifile(NULL_IFILE);
 		}
 		free(gfilename);
 #else
-		filename = shell_quote(*argv);
-		if (filename == NULL)
-			filename = *argv;
-		argv++;
-		(void) get_ifile(filename, ifile);
+		(void) get_ifile(*argv++, ifile);
 		ifile = prev_ifile(NULL_IFILE);
-		free(filename);
 #endif
 	}
 	/*
@@ -285,10 +287,19 @@ main(argc, argv)
 	{
 		if (edit_stdin())  /* Edit standard input */
 			quit(QUIT_ERROR);
+		if (quit_if_one_screen)
+			line_count = get_line_count();
 	} else 
 	{
 		if (edit_first())  /* Edit first valid file in cmd line */
 			quit(QUIT_ERROR);
+		if (quit_if_one_screen)
+		{
+			if (nifile() == 1)
+				line_count = get_line_count();
+			else /* If more than one file, -F can not be used */
+				quit_if_one_screen = FALSE;
+		}
 	}
 
 	init();
@@ -304,9 +315,9 @@ main(argc, argv)
  */
 	public char *
 save(s)
-	char *s;
+	constant char *s;
 {
-	register char *p;
+	char *p;
 
 	p = (char *) ecalloc(strlen(s)+1, sizeof(char));
 	strcpy(p, s);
@@ -322,7 +333,7 @@ ecalloc(count, size)
 	int count;
 	unsigned int size;
 {
-	register VOID_POINTER p;
+	VOID_POINTER p;
 
 	p = (VOID_POINTER) calloc(count, size);
 	if (p != NULL)
@@ -338,7 +349,7 @@ ecalloc(count, size)
  */
 	public char *
 skipsp(s)
-	register char *s;
+	char *s;
 {
 	while (*s == ' ' || *s == '\t')	
 		s++;
@@ -356,9 +367,9 @@ sprefix(ps, s, uppercase)
 	char *s;
 	int uppercase;
 {
-	register int c;
-	register int sc;
-	register int len = 0;
+	int c;
+	int sc;
+	int len = 0;
 
 	for ( ;  *s != '\0';  s++, ps++)
 	{
@@ -424,8 +435,8 @@ quit(status)
 static const char *
 filebase(const char *fn)
 {
-	register size_t l = strlen(fn);
-	register const char *cp = fn + l - 1;
+	size_t l = strlen(fn);
+	const char *cp = fn + l - 1;
 	while (l > 0 && *cp != '\\' && *cp != '/')
 	{
 		l--; cp--;
