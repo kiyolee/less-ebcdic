@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2017  Mark Nudelman
+ * Copyright (C) 1984-2019  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -247,7 +247,7 @@ icharset(name, no_error)
  * Define a charset, given a locale name.
  */
 	static void
-ilocale()
+ilocale(VOID_PARAM)
 {
 	int c;
 
@@ -317,7 +317,7 @@ setfmt(s, fmtvarptr, attrptr, default_fmt)
  *
  */
 	static void
-set_charset_org()
+set_charset_org(VOID_PARAM)
 {
 	char *s;
 
@@ -340,7 +340,7 @@ set_charset_org()
 	 * LESSCHARSET is not defined: try LESSCHARDEF.
 	 */
 	s = lgetenv("LESSCHARDEF");
-	if (s != NULL && *s != '\0')
+	if (!isnullenv(s))
 	{
 		ichardef(s);
 		return;
@@ -394,7 +394,7 @@ set_charset_org()
 }
 
 	static void
-set_charset()
+set_charset(VOID_PARAM)
 {
 	int i;
 
@@ -414,7 +414,7 @@ set_charset()
  * Initialize charset data structures.
  */
 	public void
-init_charset()
+init_charset(VOID_PARAM)
 {
 	char *s;
 

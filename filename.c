@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2017  Mark Nudelman
+ * Copyright (C) 1984-2019  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -101,7 +101,7 @@ shell_unquote(str)
  * Get the shell's escape character.
  */
 	public char *
-get_meta_escape()
+get_meta_escape(VOID_PARAM)
 {
 	char *s;
 
@@ -115,7 +115,7 @@ get_meta_escape()
  * Get the characters which the shell considers to be "metacharacters".
  */
 	static char *
-metachars()
+metachars(VOID_PARAM)
 {
 	static char *mchars = NULL;
 
@@ -627,7 +627,7 @@ shellcmd(cmd)
 	char *shell;
 
 	shell = lgetenv("SHELL");
-	if (shell != NULL && *shell != '\0')
+	if (!isnullenv(shell))
 	{
 		char *scmd;
 		char *esccmd;
@@ -804,7 +804,7 @@ lglob(filename)
 		return (filename);
 	}
 	lessecho = lgetenv("LESSECHO");
-	if (lessecho == NULL || *lessecho == '\0')
+	if (isnullenv(lessecho))
 		lessecho = "lessecho";
 	/*
 	 * Invoke lessecho, and read its output (a globbed list of filenames).
@@ -831,7 +831,7 @@ lglob(filename)
 	if (*gfilename == '\0')
 	{
 		free(gfilename);
-		return (save(filename));
+		return (filename);
 	}
 }
 #else
@@ -844,6 +844,21 @@ lglob(filename)
 #endif
 	free(filename);
 	return (gfilename);
+}
+
+/*
+ * @@@
+ */
+	public char *
+lrealpath(path)
+	char *path;
+{
+#if HAVE_REALPATH
+	char rpath[PATH_MAX];
+	if (realpath(path, rpath) != NULL)
+		return (save(rpath));
+#endif
+	return (save(path));
 }
 
 /*
@@ -1130,7 +1145,7 @@ filesize(f)
  * 
  */
 	public char *
-shell_coption()
+shell_coption(VOID_PARAM)
 {
 	return ("-c");
 }
