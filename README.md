@@ -15,4 +15,4 @@ Features:
 * Detect EBCDIC files with better accuracy.
 * Added eless (i.e. less -%) that starts less in EBCDIC mode.
 * less +F works for EBCDIC files.
-* Visual Studio 2008/2010/2013/2015/2017 build support.
+* Visual Studio 2008/2010/2013/2015/2017/2019 build support.
