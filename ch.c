@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2019  Mark Nudelman
+ * Copyright (C) 1984-2020  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -412,6 +412,7 @@ end_logfile(VOID_PARAM)
 	}
 	close(logfile);
 	logfile = -1;
+	free(namelogfile);
 	namelogfile = NULL;
 }
 
@@ -846,7 +847,8 @@ seekable(f)
 	public void
 ch_set_eof(VOID_PARAM)
 {
-	ch_fsize = ch_fpos;
+	if (ch_fsize != NULL_POSITION && ch_fsize < ch_fpos)
+		ch_fsize = ch_fpos;
 }
 
 
