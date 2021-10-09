@@ -177,6 +177,7 @@
     <ClCompile Include="..\..\tags.c" />
     <ClCompile Include="..\..\ttyin.c" />
     <ClCompile Include="..\..\version.c" />
+    <ClCompile Include="..\..\xbuf.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -124,7 +124,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\lesskey.c" />
+    <ClCompile Include="..\..\lesskey_parse.c" />
     <ClCompile Include="..\..\version.c" />
+    <ClCompile Include="..\..\xbuf.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\cmd.h" />

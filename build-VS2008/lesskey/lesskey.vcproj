@@ -324,7 +324,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lesskey_parse.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\version.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\xbuf.c"
 				>
 			</File>
 		</Filter>

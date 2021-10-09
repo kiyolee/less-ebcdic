@@ -219,10 +219,11 @@ shell_quote(s)
  * Return a pathname that points to a specified file in a specified directory.
  * Return NULL if the file does not exist in the directory.
  */
-	static char *
-dirfile(dirname, filename)
+	public char *
+dirfile(dirname, filename, must_exist)
 	char *dirname;
 	char *filename;
+	int must_exist;
 {
 	char *pathname;
 	int len;
@@ -238,17 +239,20 @@ dirfile(dirname, filename)
 	if (pathname == NULL)
 		return (NULL);
 	SNPRINTF3(pathname, len, "%s%s%s", dirname, PATHNAME_SEP, filename);
-	/*
-	 * Make sure the file exists.
-	 */
-	f = open(pathname, OPEN_READ);
-	if (f < 0)
+	if (must_exist)
 	{
-		free(pathname);
-		pathname = NULL;
-	} else
-	{
-		close(f);
+		/*
+		 * Make sure the file exists.
+		 */
+		f = open(pathname, OPEN_READ);
+		if (f < 0)
+		{
+			free(pathname);
+			pathname = NULL;
+		} else
+		{
+			close(f);
+		}
 	}
 	return (pathname);
 }
@@ -262,25 +266,19 @@ homefile(filename)
 {
 	char *pathname;
 
-	/*
-	 * Try $HOME/filename.
-	 */
-	pathname = dirfile(lgetenv("HOME"), filename);
+	/* Try $HOME/filename. */
+	pathname = dirfile(lgetenv("HOME"), filename, 1);
 	if (pathname != NULL)
 		return (pathname);
 #if OS2
-	/*
-	 * Try $INIT/filename.
-	 */
-	pathname = dirfile(lgetenv("INIT"), filename);
+	/* Try $INIT/filename. */
+	pathname = dirfile(lgetenv("INIT"), filename, 1);
 	if (pathname != NULL)
 		return (pathname);
 #endif
 #if MSDOS_COMPILER || OS2
-	/*
-	 * Look for the file anywhere on search path.
-	 */
-	pathname = (char *) calloc(_MAX_PATH, sizeof(char));
+	/* Look for the file anywhere on search path. */
+	pathname = (char *) ecalloc(_MAX_PATH, sizeof(char));
 #if MSDOS_COMPILER==DJGPPC
 	{
 		char *res = searchpath(filename);
@@ -565,6 +563,7 @@ seek_filesize(f)
 	return ((POSITION) spos);
 }
 
+#if HAVE_POPEN
 /*
  * Read a string from a file.
  * Return a pointer to the string in memory.
@@ -607,10 +606,6 @@ readfd(fd)
 	*p = '\0';
 	return (buf);
 }
-
-
-
-#if HAVE_POPEN
 
 #ifndef WIN32
 FILE *popen(const char*, const char*);
@@ -864,6 +859,7 @@ lrealpath(path)
 	return (save(path));
 }
 
+#if HAVE_POPEN
 /*
  * Return number of %s escapes in a string.
  * Return a large number if there are any other % escapes besides %s.
@@ -889,6 +885,7 @@ num_pct_s(lessopen)
 	}
 	return (num);
 }
+#endif
 
 /*
  * See if we should open a "replacement file" 
@@ -1005,10 +1002,13 @@ open_altfile(filename, pf, pfd)
 	cmd = readfd(fd);
 	pclose(fd);
 	if (*cmd == '\0')
+	{
 		/*
 		 * Pipe is empty.  This means there is no alt file.
 		 */
+		free(cmd);
 		return (NULL);
+	}
 	return (cmd);
 #endif /* HAVE_POPEN */
 }
@@ -1174,4 +1174,3 @@ last_component(name)
 	}
 	return (name);
 }
-

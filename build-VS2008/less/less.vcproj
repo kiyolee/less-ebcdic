@@ -459,6 +459,10 @@
 				RelativePath="..\..\version.c"
 				>
 			</File>
+			<File
+				RelativePath="..\..\xbuf.c"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
