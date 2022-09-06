@@ -2,7 +2,7 @@
 
 less pager enhanced to detect/read EBCDIC files.
 
-This version is less-590.
+This version is less-608.
 
 For whoever needs to deal with EBCDIC files very often, this can be handy.
 
@@ -15,4 +15,4 @@ Features:
 * Detect EBCDIC files with better accuracy.
 * Added eless (i.e. less -%) that starts less in EBCDIC mode.
 * less +F works for EBCDIC files.
-* Visual Studio 2008/2010/2013/2015/2017/2019 build support.
+* Visual Studio 2008/2010/2013/2015/2017/2019/2022 build support.
