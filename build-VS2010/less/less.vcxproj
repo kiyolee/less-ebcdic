@@ -157,6 +157,7 @@
     <ClCompile Include="..\..\ifile.c" />
     <ClCompile Include="..\..\input.c" />
     <ClCompile Include="..\..\jump.c" />
+    <ClCompile Include="..\..\lesskey_parse.c" />
     <ClCompile Include="..\..\line.c" />
     <ClCompile Include="..\..\linenum.c" />
     <ClCompile Include="..\..\lsystem.c" />

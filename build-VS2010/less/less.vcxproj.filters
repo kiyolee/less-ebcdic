@@ -152,5 +152,8 @@
     <ClCompile Include="..\..\xbuf.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\lesskey_parse.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

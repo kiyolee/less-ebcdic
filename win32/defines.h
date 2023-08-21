@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2021  Mark Nudelman
+ * Copyright (C) 1984-2023  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -115,6 +115,7 @@
 #define	LESSKEYFILE		"_less"
 #define	LESSKEYFILE_SYS		"c:\\_sysless"
 #define	DEF_LESSKEYINFILE	"_lesskey"
+#define	LESSKEYINFILE_SYS	"c:\\_syslesskey"
 #define LESSHISTFILE		"_lesshst"
 
 
@@ -168,6 +169,9 @@
  * HAVE_DUP is 1 if your system has the dup() call.
  */
 #define	HAVE_DUP	1
+
+/* Define to 1 to support reading lesskey source files (not just binary). */
+#define HAVE_LESSKEYSRC 1
 
 /*
  * Sizes of various buffers.
@@ -256,11 +260,7 @@
 /* Define MUST_DEFINE_ERRNO if you have errno but it is not define 
  * in errno.h */
 #define HAVE_ERRNO 1
-#ifdef MINGW
 #define MUST_DEFINE_ERRNO 0
-#else
-#define MUST_DEFINE_ERRNO 1
-#endif
 
 /* Define HAVE_SYS_ERRLIST if you have the sys_errlist[] variable */
 #define HAVE_SYS_ERRLIST 1
@@ -322,9 +322,6 @@
 
 /* Define if you have the <fcntl.h> header file.  */
 #define HAVE_FCNTL_H 1
-
-/* Define HAVE_FLOAT if your compiler supports the "double" type. */
-#define HAVE_FLOAT 1
 
 /* Define if you have the <limits.h> header file.  */
 #define HAVE_LIMITS_H 1

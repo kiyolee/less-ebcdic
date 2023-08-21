@@ -380,6 +380,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lesskey_parse.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\line.c"
 				>
 			</File>
