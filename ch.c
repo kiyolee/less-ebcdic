@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2023  Mark Nudelman
+ * Copyright (C) 1984-2024  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -18,13 +18,6 @@
 #if MSDOS_COMPILER==WIN32C
 #include <errno.h>
 #include <windows.h>
-#endif
-
-#if HAVE_PROCFS
-#include <sys/statfs.h>
-#if HAVE_LINUX_MAGIC_H
-#include <linux/magic.h>
-#endif
 #endif
 
 typedef POSITION BLOCKNUM;
@@ -46,7 +39,7 @@ struct bufnode {
 struct buf {
 	struct bufnode node;
 	BLOCKNUM block;
-	unsigned int datasize;
+	size_t datasize;
 	unsigned char data[LBUFSIZE];
 };
 #define bufnode_buf(bn)  ((struct buf *) bn)
@@ -64,7 +57,7 @@ struct filestate {
 	POSITION fpos;
 	int nbufs;
 	BLOCKNUM block;
-	unsigned int offset;
+	size_t offset;
 	POSITION fsize;
 };
 
@@ -122,15 +115,14 @@ struct filestate {
 	thisfile->hashtbl[h].hnext = (bn);
 
 static struct filestate *thisfile;
-static int ch_ungotchar = -1;
+static unsigned char ch_ungotchar;
+static lbool ch_have_ungotchar = FALSE;
 static int maxbufs = -1;
 
 extern int autobuf;
 extern int sigs;
-extern int secure;
-extern int screen_trashed;
 extern int follow_mode;
-extern int waiting_for_data;
+extern lbool waiting_for_data;
 extern constant char helpdata[];
 extern constant int size_helpdata;
 extern IFILE curr_ifile;
@@ -138,11 +130,17 @@ extern IFILE curr_ifile;
 extern int logfile;
 extern char *namelogfile;
 #endif
+extern int ebcdic_conv;
 
 static int ch_addbuf();
 
-extern int ebcdic_conv;
-void ebcdic_to_ascii(char *buf, int sz);
+/*
+ * Return the file position corresponding to an offset within a block.
+ */
+static POSITION ch_position(BLOCKNUM block, size_t offset)
+{
+	return (block * LBUFSIZE) + (POSITION) offset;
+}
 
 /*
  * Get the character pointed to by the read pointer.
@@ -151,8 +149,8 @@ static int ch_get(void)
 {
 	struct buf *bp;
 	struct bufnode *bn;
-	int n;
-	int read_again;
+	ssize_t n;
+	lbool read_again;
 	int h;
 	POSITION pos;
 	POSITION len;
@@ -189,6 +187,8 @@ static int ch_get(void)
 			goto found;
 		}
 	}
+	if (ABORT_SIGS())
+		return (EOI);
 	if (bn == END_OF_HCHAIN(h))
 	{
 		/*
@@ -225,7 +225,7 @@ static int ch_get(void)
 
 	for (;;)
 	{
-		pos = (ch_block * LBUFSIZE) + bp->datasize;
+		pos = ch_position(ch_block, bp->datasize);
 		if ((len = ch_length()) != NULL_POSITION && pos >= len)
 			/*
 			 * At end of file.
@@ -255,19 +255,18 @@ static int ch_get(void)
 		 * If we read less than a full block, that's ok.
 		 * We use partial block and pick up the rest next time.
 		 */
-		if (ch_ungotchar != -1)
+		if (ch_have_ungotchar)
 		{
 			bp->data[bp->datasize] = ch_ungotchar;
 			n = 1;
-			ch_ungotchar = -1;
+			ch_have_ungotchar = FALSE;
 		} else if (ch_flags & CH_HELPFILE)
 		{
-			bp->data[bp->datasize] = helpdata[ch_fpos];
+			bp->data[bp->datasize] = (unsigned char) helpdata[ch_fpos];
 			n = 1;
 		} else
 		{
-			n = iread(ch_file, &bp->data[bp->datasize], 
-				(unsigned int)(LBUFSIZE - bp->datasize));
+			n = iread(ch_file, &bp->data[bp->datasize], LBUFSIZE - bp->datasize);
 			if (ebcdic_conv && n > 0)
 				ebcdic_to_ascii(bp->data + bp->datasize, n);
 		}
@@ -299,12 +298,15 @@ static int ch_get(void)
 		/*
 		 * If we have a log file, write the new data to it.
 		 */
-		if (!secure && logfile >= 0 && n > 0)
-			write(logfile, (char *) &bp->data[bp->datasize], n);
+		if (secure_allow(SF_LOGFILE))
+		{
+			if (logfile >= 0 && n > 0)
+				write(logfile, &bp->data[bp->datasize], (size_t) n);
+		}
 #endif
 
 		ch_fpos += n;
-		bp->datasize += n;
+		bp->datasize += (size_t) n;
 
 		if (n == 0)
 		{
@@ -327,7 +329,7 @@ static int ch_get(void)
 			if (ignore_eoi && follow_mode == FOLLOW_NAME && curr_ifile_changed())
 			{
 				/* screen_trashed=2 causes make_display to reopen the file. */
-				screen_trashed = 2;
+				screen_trashed_num(2);
 				return (EOI);
 			}
 			if (sigs)
@@ -367,9 +369,15 @@ static int ch_get(void)
  */
 public void ch_ungetchar(int c)
 {
-	if (c != -1 && ch_ungotchar != -1)
-		error("ch_ungetchar overrun", NULL_PARG);
-	ch_ungotchar = c;
+	if (c < 0)
+		ch_have_ungotchar = FALSE;
+	else
+	{
+		if (ch_have_ungotchar)
+			error("ch_ungetchar overrun", NULL_PARG);
+		ch_ungotchar = (unsigned char) c;
+		ch_have_ungotchar = TRUE;
+	}
 }
 
 #if LOGFILE
@@ -379,7 +387,7 @@ public void ch_ungetchar(int c)
  */
 public void end_logfile(void)
 {
-	static int tried = FALSE;
+	static lbool tried = FALSE;
 
 	if (logfile < 0)
 		return;
@@ -406,7 +414,7 @@ public void sync_logfile(void)
 {
 	struct buf *bp;
 	struct bufnode *bn;
-	int warned = FALSE;
+	lbool warned = FALSE;
 	BLOCKNUM block;
 	BLOCKNUM nblocks;
 
@@ -415,13 +423,13 @@ public void sync_logfile(void)
 	nblocks = (ch_fpos + LBUFSIZE - 1) / LBUFSIZE;
 	for (block = 0;  block < nblocks;  block++)
 	{
-		int wrote = FALSE;
+		lbool wrote = FALSE;
 		FOR_BUFS(bn)
 		{
 			bp = bufnode_buf(bn);
 			if (bp->block == block)
 			{
-				write(logfile, (char *) bp->data, bp->datasize);
+				write(logfile, bp->data, bp->datasize);
 				wrote = TRUE;
 				break;
 			}
@@ -440,7 +448,7 @@ public void sync_logfile(void)
 /*
  * Determine if a specific block is currently in one of the buffers.
  */
-static int buffered(BLOCKNUM block)
+static lbool buffered(BLOCKNUM block)
 {
 	struct buf *bp;
 	struct bufnode *bn;
@@ -490,7 +498,7 @@ public int ch_seek(POSITION pos)
 	 * Set read pointer.
 	 */
 	ch_block = new_block;
-	ch_offset = pos % LBUFSIZE;
+	ch_offset = (size_t) (pos % LBUFSIZE);
 	return (0);
 }
 
@@ -537,7 +545,7 @@ public int ch_end_buffer_seek(void)
 	FOR_BUFS(bn)
 	{
 		bp = bufnode_buf(bn);
-		buf_pos = (bp->block * LBUFSIZE) + bp->datasize;
+		buf_pos = ch_position(bp->block, bp->datasize);
 		if (buf_pos > end_pos)
 			end_pos = buf_pos;
 	}
@@ -601,7 +609,7 @@ public POSITION ch_tell(void)
 {
 	if (thisfile == NULL)
 		return (NULL_POSITION);
-	return (ch_block * LBUFSIZE) + ch_offset;
+	return ch_position(ch_block, ch_offset);
 }
 
 /*
@@ -651,14 +659,14 @@ public int ch_back_get(void)
  * Set max amount of buffer space.
  * bufspace is in units of 1024 bytes.  -1 mean no limit.
  */
-public void ch_setbufspace(int bufspace)
+public void ch_setbufspace(ssize_t bufspace)
 {
 	if (bufspace < 0)
 		maxbufs = -1;
 	else
 	{
-		int lbufk = LBUFSIZE / 1024;
-		maxbufs = bufspace / lbufk + (bufspace % lbufk != 0);
+		size_t lbufk = LBUFSIZE / 1024;
+		maxbufs = (int) (bufspace / lbufk + (bufspace % lbufk != 0));
 		if (maxbufs < 1)
 			maxbufs = 1;
 	}
@@ -693,37 +701,17 @@ public void ch_flush(void)
 	}
 
 	/*
-	 * Figure out the size of the file, if we can.
-	 */
-	ch_fsize = filesize(ch_file);
-
-	/*
 	 * Seek to a known position: the beginning of the file.
 	 */
 	ch_fpos = 0;
 	ch_block = 0; /* ch_fpos / LBUFSIZE; */
 	ch_offset = 0; /* ch_fpos % LBUFSIZE; */
 
-#if HAVE_PROCFS
-	/*
-	 * This is a kludge to workaround a Linux kernel bug: files in
-	 * /proc have a size of 0 according to fstat() but have readable 
-	 * data.  They are sometimes, but not always, seekable.
-	 * Force them to be non-seekable here.
-	 */
-	if (ch_fsize == 0)
+	if (ch_flags & CH_NOTRUSTSIZE)
 	{
-		struct statfs st;
-		if (fstatfs(ch_file, &st) == 0)
-		{
-			if (st.f_type == PROC_SUPER_MAGIC)
-			{
-				ch_fsize = NULL_POSITION;
-				ch_flags &= ~CH_CANSEEK;
-			}
-		}
+		ch_fsize = NULL_POSITION;
+		ch_flags &= ~CH_CANSEEK;
 	}
-#endif
 
 	if (less_lseek(ch_file, (less_off_t)0, SEEK_SET) == BAD_LSEEK)
 	{
@@ -825,7 +813,7 @@ public void ch_set_eof(void)
 /*
  * Initialize file state for a new file.
  */
-public void ch_init(int f, int flags)
+public void ch_init(int f, int flags, ssize_t nread)
 {
 	/*
 	 * See if we already have a filestate for this file.
@@ -856,6 +844,22 @@ public void ch_init(int f, int flags)
 	}
 	if (thisfile->file == -1)
 		thisfile->file = f;
+
+	/*
+	 * Figure out the size of the file, if we can.
+	 */
+	ch_fsize = (flags & CH_HELPFILE) ? size_helpdata : filesize(ch_file);
+
+	/*
+	 * This is a kludge to workaround a Linux kernel bug: files in some
+	 * pseudo filesystems like /proc and tracefs have a size of 0 according
+	 * to fstat() but have readable data.
+	 */
+	if (ch_fsize == 0 && nread > 0)
+	{
+		ch_flags |= CH_NOTRUSTSIZE;
+	}
+
 	ch_flush();
 }
 
@@ -864,7 +868,7 @@ public void ch_init(int f, int flags)
  */
 public void ch_close(void)
 {
-	int keepstate = FALSE;
+	lbool keepstate = FALSE;
 
 	if (thisfile == NULL)
 		return;
@@ -942,44 +946,43 @@ static void ch_dump(struct filestate *fs)
 }
 #endif
 
-static const char ebcdic_to_ascii_tab[256] = {
-	'\x00', '\x01', '\x02', '\x03', '\x9c', '\x09', '\x86', '\x7f',
-	'\x97', '\x8d', '\x8e', '\x0b', '\x0c', '\x0d', '\x0e', '\x0f',
-	'\x10', '\x11', '\x12', '\x13', '\x9d', '\x85', '\x08', '\x87',
-	'\x18', '\x19', '\x92', '\x8f', '\x1c', '\x1d', '\x1e', '\x1f',
-	'\x80', '\x81', '\x82', '\x83', '\x84', '\x0a', '\x17', '\x1b',
-	'\x88', '\x89', '\x8a', '\x8b', '\x8c', '\x05', '\x06', '\x07',
-	'\x90', '\x91', '\x16', '\x93', '\x94', '\x95', '\x96', '\x04',
-	'\x98', '\x99', '\x9a', '\x9b', '\x14', '\x15', '\x9e', '\x1a',
-	'\x20', '\xa0', '\xe2', '\xe4', '\xe0', '\xe1', '\xe3', '\xe5',
-	'\xe7', '\xf1', '\xa2', '\x2e', '\x3c', '\x28', '\x2b', '\x7c',
-	'\x26', '\xe9', '\xea', '\xeb', '\xe8', '\xed', '\xee', '\xef',
-	'\xec', '\xdf', '\x21', '\x24', '\x2a', '\x29', '\x3b', '\xac',
-	'\x2d', '\x2f', '\xc2', '\xc4', '\xc0', '\xc1', '\xc3', '\xc5',
-	'\xc7', '\xd1', '\xa6', '\x2c', '\x25', '\x5f', '\x3e', '\x3f',
-	'\xf8', '\xc9', '\xca', '\xcb', '\xc8', '\xcd', '\xce', '\xcf',
-	'\xcc', '\x60', '\x3a', '\x23', '\x40', '\x27', '\x3d', '\x22',
-	'\xd8', '\x61', '\x62', '\x63', '\x64', '\x65', '\x66', '\x67',
-	'\x68', '\x69', '\xab', '\xbb', '\xf0', '\xfd', '\xfe', '\xb1',
-	'\xb0', '\x6a', '\x6b', '\x6c', '\x6d', '\x6e', '\x6f', '\x70',
-	'\x71', '\x72', '\xaa', '\xba', '\xe6', '\xb8', '\xc6', '\xa4',
-	'\xb5', '\x7e', '\x73', '\x74', '\x75', '\x76', '\x77', '\x78',
-	'\x79', '\x7a', '\xa1', '\xbf', '\xd0', '\xdd', '\xde', '\xae',
-	'\x5e', '\xa3', '\xa5', '\xb7', '\xa9', '\xa7', '\xb6', '\xbc',
-	'\xbd', '\xbe', '\x5b', '\x5d', '\xaf', '\xa8', '\xb4', '\xd7',
-	'\x7b', '\x41', '\x42', '\x43', '\x44', '\x45', '\x46', '\x47',
-	'\x48', '\x49', '\xad', '\xf4', '\xf6', '\xf2', '\xf3', '\xf5',
-	'\x7d', '\x4a', '\x4b', '\x4c', '\x4d', '\x4e', '\x4f', '\x50',
-	'\x51', '\x52', '\xb9', '\xfb', '\xfc', '\xf9', '\xfa', '\xff',
-	'\x5c', '\xf7', '\x53', '\x54', '\x55', '\x56', '\x57', '\x58',
-	'\x59', '\x5a', '\xb2', '\xd4', '\xd6', '\xd2', '\xd3', '\xd5',
-	'\x30', '\x31', '\x32', '\x33', '\x34', '\x35', '\x36', '\x37',
-	'\x38', '\x39', '\xb3', '\xdb', '\xdc', '\xd9', '\xda', '\x9f',
-};
-
-void ebcdic_to_ascii(char *buf, int sz)
+public void ebcdic_to_ascii(char *buf, ssize_t sz)
 {
-	int i;
+    static const char ebcdic_to_ascii_tab[256] = {
+        '\x00', '\x01', '\x02', '\x03', '\x9c', '\x09', '\x86', '\x7f',
+        '\x97', '\x8d', '\x8e', '\x0b', '\x0c', '\x0d', '\x0e', '\x0f',
+        '\x10', '\x11', '\x12', '\x13', '\x9d', '\x85', '\x08', '\x87',
+        '\x18', '\x19', '\x92', '\x8f', '\x1c', '\x1d', '\x1e', '\x1f',
+        '\x80', '\x81', '\x82', '\x83', '\x84', '\x0a', '\x17', '\x1b',
+        '\x88', '\x89', '\x8a', '\x8b', '\x8c', '\x05', '\x06', '\x07',
+        '\x90', '\x91', '\x16', '\x93', '\x94', '\x95', '\x96', '\x04',
+        '\x98', '\x99', '\x9a', '\x9b', '\x14', '\x15', '\x9e', '\x1a',
+        '\x20', '\xa0', '\xe2', '\xe4', '\xe0', '\xe1', '\xe3', '\xe5',
+        '\xe7', '\xf1', '\xa2', '\x2e', '\x3c', '\x28', '\x2b', '\x7c',
+        '\x26', '\xe9', '\xea', '\xeb', '\xe8', '\xed', '\xee', '\xef',
+        '\xec', '\xdf', '\x21', '\x24', '\x2a', '\x29', '\x3b', '\xac',
+        '\x2d', '\x2f', '\xc2', '\xc4', '\xc0', '\xc1', '\xc3', '\xc5',
+        '\xc7', '\xd1', '\xa6', '\x2c', '\x25', '\x5f', '\x3e', '\x3f',
+        '\xf8', '\xc9', '\xca', '\xcb', '\xc8', '\xcd', '\xce', '\xcf',
+        '\xcc', '\x60', '\x3a', '\x23', '\x40', '\x27', '\x3d', '\x22',
+        '\xd8', '\x61', '\x62', '\x63', '\x64', '\x65', '\x66', '\x67',
+        '\x68', '\x69', '\xab', '\xbb', '\xf0', '\xfd', '\xfe', '\xb1',
+        '\xb0', '\x6a', '\x6b', '\x6c', '\x6d', '\x6e', '\x6f', '\x70',
+        '\x71', '\x72', '\xaa', '\xba', '\xe6', '\xb8', '\xc6', '\xa4',
+        '\xb5', '\x7e', '\x73', '\x74', '\x75', '\x76', '\x77', '\x78',
+        '\x79', '\x7a', '\xa1', '\xbf', '\xd0', '\xdd', '\xde', '\xae',
+        '\x5e', '\xa3', '\xa5', '\xb7', '\xa9', '\xa7', '\xb6', '\xbc',
+        '\xbd', '\xbe', '\x5b', '\x5d', '\xaf', '\xa8', '\xb4', '\xd7',
+        '\x7b', '\x41', '\x42', '\x43', '\x44', '\x45', '\x46', '\x47',
+        '\x48', '\x49', '\xad', '\xf4', '\xf6', '\xf2', '\xf3', '\xf5',
+        '\x7d', '\x4a', '\x4b', '\x4c', '\x4d', '\x4e', '\x4f', '\x50',
+        '\x51', '\x52', '\xb9', '\xfb', '\xfc', '\xf9', '\xfa', '\xff',
+        '\x5c', '\xf7', '\x53', '\x54', '\x55', '\x56', '\x57', '\x58',
+        '\x59', '\x5a', '\xb2', '\xd4', '\xd6', '\xd2', '\xd3', '\xd5',
+        '\x30', '\x31', '\x32', '\x33', '\x34', '\x35', '\x36', '\x37',
+        '\x38', '\x39', '\xb3', '\xdb', '\xdc', '\xd9', '\xda', '\x9f',
+    };
+    int i;
 	for (i = 0; i < sz; i++, buf++)
 		*buf = ebcdic_to_ascii_tab[(unsigned char)*buf];
 }

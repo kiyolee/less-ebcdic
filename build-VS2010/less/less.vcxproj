@@ -134,6 +134,7 @@
     <ClInclude Include="..\..\charset.h" />
     <ClInclude Include="..\..\cmd.h" />
     <ClInclude Include="..\..\funcs.h" />
+    <ClInclude Include="..\..\lang.h" />
     <ClInclude Include="..\..\less.h" />
     <ClInclude Include="..\..\lglob.h" />
     <ClInclude Include="..\..\option.h" />
@@ -141,6 +142,7 @@
     <ClInclude Include="..\..\pckeys.h" />
     <ClInclude Include="..\..\position.h" />
     <ClInclude Include="..\..\regexp.h" />
+    <ClInclude Include="..\..\xbuf.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\brac.c" />
@@ -151,6 +153,7 @@
     <ClCompile Include="..\..\cvt.c" />
     <ClCompile Include="..\..\decode.c" />
     <ClCompile Include="..\..\edit.c" />
+    <ClCompile Include="..\..\evar.c" />
     <ClCompile Include="..\..\filename.c" />
     <ClCompile Include="..\..\forwback.c" />
     <ClCompile Include="..\..\help.c" />
@@ -179,6 +182,9 @@
     <ClCompile Include="..\..\ttyin.c" />
     <ClCompile Include="..\..\version.c" />
     <ClCompile Include="..\..\xbuf.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\win32\less.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

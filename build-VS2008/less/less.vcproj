@@ -356,6 +356,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\evar.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\filename.c"
 				>
 			</File>
@@ -486,6 +490,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lang.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\less.h"
 				>
 			</File>
@@ -513,12 +521,20 @@
 				RelativePath="..\..\regexp.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\xbuf.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath="..\..\win32\less.rc"
+				>
+			</File>
 		</Filter>
 	</Files>
 	<Globals>

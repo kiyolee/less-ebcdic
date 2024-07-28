@@ -133,6 +133,9 @@
     <ClInclude Include="..\..\less.h" />
     <ClInclude Include="..\..\lesskey.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\win32\lesskey.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

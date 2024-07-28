@@ -1,0 +1,40 @@
+#include <winver.h>
+#include "less_version.h"
+
+#ifdef GCC_WINDRES
+VS_VERSION_INFO		VERSIONINFO
+#else
+VS_VERSION_INFO		VERSIONINFO	MOVEABLE IMPURE LOADONCALL DISCARDABLE
+#endif
+  FILEVERSION		LESS_VER_MAJOR,LESS_VER_MINOR,LESS_VER_REVISION,0
+  PRODUCTVERSION	LESS_VER_MAJOR,LESS_VER_MINOR,LESS_VER_REVISION,0
+  FILEFLAGSMASK		VS_FFI_FILEFLAGSMASK
+#ifdef _DEBUG
+  FILEFLAGS		1
+#else
+  FILEFLAGS		0
+#endif
+  FILEOS		VOS__WINDOWS32
+  FILETYPE		VFT_DLL
+  FILESUBTYPE		0	// not used
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    //language ID = U.S. English, char set = Windows, Multilingual
+    BEGIN
+      VALUE "FileDescription",	"lesskey for Windows\0"
+      VALUE "FileVersion",	LESS_VERSION_STR "\0"
+      VALUE "InternalName",	"lesskey.exe\0"
+      VALUE "LegalCopyright",	"Copyright (C) 1984-2024 Mark Nudelman\0"
+      VALUE "OriginalFilename",	"lesskey.exe\0"
+      VALUE "ProductName",	"less\0"
+      VALUE "ProductVersion",	LESS_VERSION_STR "\0"
+      VALUE "Comments",		"Alternative build from https://github.com/kiyolee/less-ebcdic/.\0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 1252
+  END
+END

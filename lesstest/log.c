@@ -81,8 +81,8 @@ int log_command(char* const* argv, int argc, const char* textfile) {
 
 int log_textfile(const char* textfile) {
 	if (logf == NULL) return 0;
-	struct stat st;
-	if (stat(textfile, &st) < 0) {
+	less_stat_t st;
+	if (less_stat(textfile, &st) < 0) {
 		fprintf(stderr, "cannot stat %s\n", textfile);
 		return 0;
 	}
