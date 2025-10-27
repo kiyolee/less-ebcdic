@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2024  Mark Nudelman
+ * Copyright (C) 1984-2025  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -131,10 +131,12 @@ static struct xbuffer user_wide_array;
 static struct xbuffer user_ubin_array;
 static struct xbuffer user_compose_array;
 static struct xbuffer user_prt_array;
+static struct xbuffer user_omit_array;
 static struct wchar_range_table user_wide_table;
 static struct wchar_range_table user_ubin_table;
 static struct wchar_range_table user_compose_table;
 static struct wchar_range_table user_prt_table;
+static struct wchar_range_table user_omit_table;
 
 /*
  * Set a wchar_range_table to the table in an xbuffer.
@@ -182,6 +184,7 @@ static void ichardef_utf(constant char *s)
 	xbuf_init(&user_ubin_array);
 	xbuf_init(&user_compose_array);
 	xbuf_init(&user_prt_array);
+	xbuf_init(&user_omit_array);
 
 	if (s != NULL)
 	{
@@ -207,6 +210,9 @@ static void ichardef_utf(constant char *s)
 			case 'c':
 				xbuf_add_data(&user_compose_array, (unsigned char *) &range, sizeof(range));
 				break;
+			case 'd':
+				xbuf_add_data(&user_omit_array, (unsigned char *) &range, sizeof(range));
+				break;
 			case 'w':
 				xbuf_add_data(&user_wide_array, (unsigned char *) &range, sizeof(range));
 				xbuf_add_data(&user_prt_array, (unsigned char *) &range, sizeof(range));
@@ -228,6 +234,7 @@ static void ichardef_utf(constant char *s)
 	wchar_range_table_set(&user_ubin_table, &user_ubin_array);
 	wchar_range_table_set(&user_compose_table, &user_compose_array);
 	wchar_range_table_set(&user_prt_table, &user_prt_array);
+	wchar_range_table_set(&user_omit_table, &user_omit_array);
 }
 
 /*
@@ -573,7 +580,7 @@ public constant char * prutfchar(LWCHAR ch)
 			SNPRINTF1(buf, sizeof(buf), "^%c", ((char) ch) ^ 0100);
 		else
 			SNPRINTF1(buf, sizeof(buf), binfmt, (char) ch);
-	} else if (is_ubin_char(ch))
+	} else if (is_ubin_char(ch) || is_omit_char(ch))
 	{
 		SNPRINTF1(buf, sizeof(buf), utfbinfmt, ch);
 	} else
@@ -775,24 +782,38 @@ public LWCHAR step_charc(constant char **pp, signed int dir, constant char *limi
 			ch = (LWCHAR) (unsigned char) ((p > limit) ? *--p : 0);
 	} else if (dir > 0)
 	{
-		len = utf_len(*p);
-		if (p + len > limit)
-		{
+		if (p >= limit)
 			ch = 0;
-			p = (char *) limit;
-		} else
+		else 
 		{
-			ch = get_wchar(p);
-			p += len;
+			len = utf_len(*p);
+			if (p + len > limit || !is_utf8_well_formed(p, len))
+			{
+				ch = (LWCHAR) (unsigned char) *p++;
+			} else
+			{
+				ch = get_wchar(p);
+				p += len;
+			}
 		}
 	} else
 	{
 		while (p > limit && IS_UTF8_TRAIL(p[-1]))
 			p--;
-		if (p > limit)
-			ch = get_wchar(--p);
-		else
+		if (p <= limit)
 			ch = 0;
+		else
+		{
+			len = utf_len(*--p);
+			if (p + len != *pp || !is_utf8_well_formed(p, len))
+			{
+				p = *pp - 1;
+				ch = (LWCHAR) (unsigned char) *p;
+			} else
+			{
+				ch = get_wchar(p);
+			}
+		}
 	}
 	*pp = p;
 	return ch;
@@ -832,6 +853,10 @@ DECLARE_RANGE_TABLE_START(fmt)
 #include "fmt.uni"
 DECLARE_RANGE_TABLE_END(fmt)
 
+DECLARE_RANGE_TABLE_START(omit)
+#include "omit.uni"
+DECLARE_RANGE_TABLE_END(omit)
+
 /* comb_table is special pairs, not ranges. */
 static struct wchar_range comb_table[] = {
 	{0x0644,0x0622}, {0x0644,0x0623}, {0x0644,0x0625}, {0x0644,0x0627},
@@ -862,6 +887,17 @@ static lbool is_in_table(LWCHAR ch, struct wchar_range_table *table)
 }
 
 /*
+ * Is a character in none of a set of specified user tables?
+ */
+static lbool not_user_defined(LWCHAR ch, struct wchar_range_table *tbl1, struct wchar_range_table *tbl2, struct wchar_range_table *tbl3)
+{
+	if (is_in_table(ch, tbl1)) return FALSE;
+	if (is_in_table(ch, tbl2)) return FALSE;
+	if (is_in_table(ch, tbl3)) return FALSE;
+	return TRUE;
+}
+
+/*
  * Is a character a UTF-8 composing character?
  * If a composing character follows any char, the two combine into one glyph.
  */
@@ -869,8 +905,9 @@ public lbool is_composing_char(LWCHAR ch)
 {
 	if (is_in_table(ch, &user_prt_table)) return FALSE;
 	return is_in_table(ch, &user_compose_table) ||
-	       is_in_table(ch, &compose_table) ||
-	       (bs_mode != BS_CONTROL && is_in_table(ch, &fmt_table));
+	       (is_in_table(ch, &compose_table) ||
+	       (bs_mode != BS_CONTROL && is_in_table(ch, &fmt_table) &&
+            not_user_defined(ch, &user_prt_table, &user_ubin_table, &user_omit_table)));
 }
 
 /*
@@ -880,8 +917,9 @@ public lbool is_ubin_char(LWCHAR ch)
 {
 	if (is_in_table(ch, &user_prt_table)) return FALSE;
 	return is_in_table(ch, &user_ubin_table) ||
-	       is_in_table(ch, &ubin_table) ||
-	       (bs_mode == BS_CONTROL && is_in_table(ch, &fmt_table));
+	       (is_in_table(ch, &ubin_table) ||
+	       (bs_mode == BS_CONTROL && is_in_table(ch, &fmt_table) &&
+            not_user_defined(ch, &user_prt_table, &user_compose_table, &user_omit_table)));
 }
 
 /*
@@ -890,7 +928,18 @@ public lbool is_ubin_char(LWCHAR ch)
 public lbool is_wide_char(LWCHAR ch)
 {
 	return is_in_table(ch, &user_wide_table) ||
-	       is_in_table(ch, &wide_table);
+	       (is_in_table(ch, &wide_table) &&
+            not_user_defined(ch, &user_compose_table, &user_ubin_table, &user_omit_table));
+}
+
+/*
+ * Is this an omittable character?
+ */
+public lbool is_omit_char(LWCHAR ch)
+{
+	return is_in_table(ch, &user_omit_table) ||
+	       (is_in_table(ch, &omit_table) &&
+            not_user_defined(ch, &user_prt_table, &user_compose_table, &user_ubin_table));
 }
 
 /*
@@ -910,4 +959,3 @@ public lbool is_combining_char(LWCHAR ch1, LWCHAR ch2)
 	}
 	return FALSE;
 }
-

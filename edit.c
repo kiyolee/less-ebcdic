@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2024  Mark Nudelman
+ * Copyright (C) 1984-2025  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -36,6 +36,7 @@ extern IFILE curr_ifile;
 extern IFILE old_ifile;
 extern struct scrpos initial_scrpos;
 extern void *ml_examine;
+extern POSITION soft_eof;
 #if SPACES_IN_FILENAMES
 extern char openquote;
 extern char closequote;
@@ -113,9 +114,7 @@ public constant char * forw_textlist(struct textlist *tlist, constant char *prev
 		s = tlist->string;
 	else
 		s = prev + strlen(prev);
-	if (s >= tlist->endstring)
-		return (NULL);
-	while (*s == '\0')
+	while (s < tlist->endstring && *s == '\0')
 		s++;
 	if (s >= tlist->endstring)
 		return (NULL);
@@ -306,7 +305,11 @@ static void close_pipe(FILE *pipefd)
 	if (WIFSIGNALED(status))
 	{
 		int sig = WTERMSIG(status);
-		if (sig != SIGPIPE || ch_length() != NULL_POSITION)
+		if (
+#ifdef SIGPIPE
+			sig != SIGPIPE || 
+#endif
+			ch_length() != NULL_POSITION)
 		{
 			parg.p_string = signal_message(sig);
 			error("Input preprocessor terminated: %s", &parg);
@@ -532,7 +535,7 @@ public int edit_ifile(IFILE ifile)
 				error("%s", &parg);
 				free(p);
 				return edit_error(filename, alt_filename, altpipe, ifile);
-			} else if ((f = open(open_filename, OPEN_READ)) < 0)
+			} else if ((f = iopen(open_filename, OPEN_READ)) < 0)
 			{
 				/*
 				 * Got an error trying to open it.
@@ -639,6 +642,7 @@ public int edit_ifile(IFILE ifile)
 	 * Get the saved position for the file.
 	 */
 	curr_ifile = ifile;
+	soft_eof = NULL_POSITION;
 	set_altfilename(curr_ifile, alt_filename);
 	set_altpipe(curr_ifile, altpipe);
 	set_open(curr_ifile); /* File has been opened */
@@ -691,6 +695,7 @@ public int edit_ifile(IFILE ifile)
 #if HILITE_SEARCH
 		clr_hilite();
 #endif
+		undo_osc8();
 		hshift = 0;
 		if (strcmp(filename, FAKE_HELPFILE) && strcmp(filename, FAKE_EMPTYFILE))
 		{

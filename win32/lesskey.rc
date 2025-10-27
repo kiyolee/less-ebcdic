@@ -26,7 +26,7 @@ BEGIN
       VALUE "FileDescription",	"lesskey for Windows\0"
       VALUE "FileVersion",	LESS_VERSION_STR "\0"
       VALUE "InternalName",	"lesskey.exe\0"
-      VALUE "LegalCopyright",	"Copyright (C) 1984-2024 Mark Nudelman\0"
+      VALUE "LegalCopyright",	"Copyright (C) 1984-2025 Mark Nudelman\0"
       VALUE "OriginalFilename",	"lesskey.exe\0"
       VALUE "ProductName",	"less\0"
       VALUE "ProductVersion",	LESS_VERSION_STR "\0"

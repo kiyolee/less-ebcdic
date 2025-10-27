@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2024  Mark Nudelman
+ * Copyright (C) 1984-2025  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -19,7 +19,7 @@
 
 #if MSDOS_COMPILER
 #include <dos.h>
-#if MSDOS_COMPILER==WIN32C && defined(MINGW)
+#if MSDOS_COMPILER==WIN32C && defined(__MINGW32__)
 #include <direct.h>
 #define setdisk(n) _chdrive((n)+1)
 #else
