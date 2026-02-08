@@ -509,7 +509,7 @@ static void text_score(constant char *data, ssize_t n, int *_text_count, int *_t
  * be used later to compare to st_size from stat(2) to see if the file
  * is lying about its size.
  */
-public int bin_file(int f, ssize_t *n)
+public lbool bin_file(int f, ssize_t *n)
 {
     ssize_t l;
 	char data[256];
@@ -518,12 +518,12 @@ public int bin_file(int f, ssize_t *n)
 	int is_bin;
 
 	if (!seekable(f))
-		return (0);
+		return FALSE;
 	if (less_lseek(f, (less_off_t)0, SEEK_SET) == BAD_LSEEK)
-		return (0);
+		return FALSE;
 	*n = read(f, data, sizeof(data));
 	if (*n <= 0)
-		return (0);
+		return FALSE;
 
 	/*
 	 * Detection makes no sense if there is no defined binary character.
@@ -541,14 +541,14 @@ public int bin_file(int f, ssize_t *n)
 	if (!is_bin && (a_text_lr_count < e_text_lr_count))
 		return (2);
 	if (is_bin && !utf_mode)
-		return (1);
+		return TRUE;
 	/*
 	 * Call it a binary file if there are more than 5 binary characters
 	 * in the first 256 bytes of the file.
 	 */
 	if (utf_mode && a_bin_count > 5)
-		return (1);
-	return (0);
+		return TRUE;
+	return FALSE;
 }
 
 /*
@@ -615,9 +615,10 @@ static FILE * shellcmd(constant char *cmd)
 			fd = popen(cmd, "r");
 		} else
 		{
-			size_t len = strlen(shell) + strlen(esccmd) + 5;
+			constant char *copt = shell_coption();
+			size_t len = strlen(shell) + strlen(esccmd) + strlen(copt) + 3;
 			scmd = (char *) ecalloc(len, sizeof(char));
-			SNPRINTF3(scmd, len, "%s %s %s", shell, shell_coption(), esccmd);
+			SNPRINTF3(scmd, len, "%s %s %s", shell, copt, esccmd);
 			free(esccmd);
 			fd = popen(scmd, "r");
 			free(scmd);
