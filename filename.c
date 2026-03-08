@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 1984-2025  Mark Nudelman
+ * Copyright (C) 1984-2026  Mark Nudelman
  *
  * You may distribute under the terms of either the GNU General Public
  * License or the Less License, as specified in the README file.
@@ -462,7 +462,7 @@ public char * fcomplete(constant char *s)
 }
 #endif
 
-static void text_score(constant char *data, ssize_t n, int *_text_count, int *_text_lr_count, int *_bin_count)
+static void text_score(constant char *data, ssize_t n, int umax, int *_text_count, int *_text_lr_count, int *_bin_count)
 {
 	int text_count = 0;
 	int text_lr_count = 0;
@@ -470,7 +470,7 @@ static void text_score(constant char *data, ssize_t n, int *_text_count, int *_t
 	constant char* p;
 	constant char* edata = &data[n];
 
-	for (p = data;  p < edata;  )
+	for (p = data;  p+umax < edata;  )
 	{
 		if (utf_mode && !is_utf8_well_formed(p, (int) ptr_diff(edata,p)))
 		{
@@ -516,13 +516,14 @@ public lbool bin_file(int f, ssize_t *n)
 	int a_text_count, a_text_lr_count, a_bin_count;
 	int e_text_count, e_text_lr_count, e_bin_count;
 	int is_bin;
+	constant int umax = 4;
 
 	if (!seekable(f))
 		return FALSE;
 	if (less_lseek(f, (less_off_t)0, SEEK_SET) == BAD_LSEEK)
 		return FALSE;
 	*n = read(f, data, sizeof(data));
-	if (*n <= 0)
+	if (*n <= umax)
 		return FALSE;
 
 	/*
@@ -531,9 +532,9 @@ public lbool bin_file(int f, ssize_t *n)
 	if (!utf_mode && !has_binary_char)
 		return (-1);
 
-	text_score(data, *n, &a_text_count, &a_text_lr_count, &a_bin_count);
+	text_score(data, *n, umax, &a_text_count, &a_text_lr_count, &a_bin_count);
 	ebcdic_to_ascii(data, *n);
-	text_score(data, *n, &e_text_count, &e_text_lr_count, &e_bin_count);
+	text_score(data, *n, umax, &e_text_count, &e_text_lr_count, &e_bin_count);
 
 	l = *n - (*n/10);
 	is_bin = (a_text_count < l && e_text_count < l);
