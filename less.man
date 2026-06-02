@@ -202,86 +202,93 @@
               the > in the bottom displayed line.
 
        m      Followed  by  any lowercase or uppercase letter, marks the first
-              displayed line with that letter.  If the status  column  is  en‐
-              abled  via  the  [1m-J  [22moption,  the status column shows the marked
-              line.
+              displayed line with that letter.  If a number N is  given,  line
+              number N is marked instead.  If the status column is enabled via
+              the [1m-J [22moption, the status column shows the marked line.
 
-       M      Acts like m, except the last displayed  line  is  marked  rather
-              than the first displayed line.
+       M      Acts  like  m,  except  the last displayed line is marked rather
+              than the first displayed line.  If a number  N  is  given,  line
+              number N is marked instead.
 
        '      (Single  quote.)  Followed by any lowercase or uppercase letter,
               returns to the position which was previously  marked  with  that
               letter.   Followed by another single quote, returns to the posi‐
               tion at which the last "large" movement  command  was  executed.
               Followed  by a ^ or $, jumps to the beginning or end of the file
-              respectively.  Marks are preserved when a new file  is  examined
-              within a single invocation of [1mless[22m, so the ' command can be used
-              to  switch  between input files.  The [1m--save-marks [22moption causes
-              marks to be preserved across different invocations of [1mless[22m.
+              respectively.  If a number N is given, the marked line is placed
+              on the N‐th line on the screen.  Otherwise, it is placed on  the
+              same  line  that it was on when it was marked (the first line on
+              the screen if marked via the [1mm [22mcommand, the  last  line  on  the
+              screen if marked via the [1mM [22mcommand, or the line that was clicked
+              if  marked  via the mouse).  Marks are preserved when a new file
+              is examined within a single invocation of [1mless[22m, so the ' command
+              can be used to switch between input files.  The [1m--save-marks [22mop‐
+              tion causes marks to be preserved across  different  invocations
+              of [1mless[22m.
 
        ^X^X   Same as single quote.
 
-       ESC‐m  Followed by any lowercase or uppercase letter, clears  the  mark
+       ESC‐m  Followed  by  any lowercase or uppercase letter, clears the mark
               identified by that letter.
 
-       /pattern
+       /[4mpattern[0m
               Search forward in the file for the N‐th line containing the pat‐
               tern.  N defaults to 1.  The pattern is a regular expression, as
-              recognized  by  the  regular expression library supplied by your
-              system.  By default, searching is case‐sensitive (uppercase  and
-              lowercase  are  considered different); the [1m-i [22moption can be used
-              to change this.  The search starts at the first  line  displayed
+              recognized by the regular expression library  supplied  by  your
+              system.   By default, searching is case‐sensitive (uppercase and
+              lowercase are considered different); the [1m-i [22moption can  be  used
+              to  change  this.  The search starts at the first line displayed
               (but see the [1m-a [22mand [1m-j [22moptions, which change this).
 
-              Certain  characters  are  special if entered at the beginning of
-              the pattern; they modify the type of search rather  than  become
+              Certain characters are special if entered at  the  beginning  of
+              the  pattern;  they modify the type of search rather than become
               part of the pattern:
 
               ^N or !
                      Search for lines which do NOT match the pattern.
 
               ^E or *
-                     Search  multiple  files.   That is, if the search reaches
-                     the END of the current file without finding a match,  the
-                     search  continues  in  the  next file in the command line
+                     Search multiple files.  That is, if  the  search  reaches
+                     the  END of the current file without finding a match, the
+                     search continues in the next file  in  the  command  line
                      list.
 
               ^F or @
-                     Begin the search at the first line of the FIRST  file  in
-                     the  command  line  list, regardless of what is currently
-                     displayed on the screen or the settings of the [1m-a  [22mor  [1m-j[0m
+                     Begin  the  search at the first line of the FIRST file in
+                     the command line list, regardless of  what  is  currently
+                     displayed  on  the screen or the settings of the [1m-a [22mor [1m-j[0m
                      options.
 
-              ^K     Highlight  any text which matches the pattern on the cur‐
+              ^K     Highlight any text which matches the pattern on the  cur‐
                      rent screen, but don’t move to the first match (KEEP cur‐
                      rent position).
 
-              ^R     Don’t interpret regular expression  metacharacters;  that
+              ^R     Don’t  interpret  regular expression metacharacters; that
                      is, do a simple textual comparison.
 
-              ^S     Followed  by  a digit N between 1 and 5.  Only text which
+              ^S     Followed by a digit N between 1 and 5.  Only  text  which
                      has a non‐empty match for the N‐th parenthesized SUB‐PAT‐
-                     TERN will be considered to match the pattern.  For  exam‐
-                     ple,  searching for "(abc)|(def)" modified with ^S1 would
-                     search for instances of "abc", but  would  highlight  in‐
+                     TERN  will be considered to match the pattern.  For exam‐
+                     ple, searching for "(abc)|(def)" modified with ^S1  would
+                     search  for  instances  of "abc", but would highlight in‐
                      stances of both "abc" and "def".  (Supported only if [1mless[0m
-                     is  built  with  one  of the regular expression libraries
-                     [1mposix[22m, [1mpcre[22m, or [1mpcre2[22m.)  Multiple  ^S  modifiers  can  be
+                     is built with one of  the  regular  expression  libraries
+                     [1mposix[22m,  [1mpcre[22m,  or  [1mpcre2[22m.)   Multiple ^S modifiers can be
                      specified, to match more than one sub‐pattern.
 
-              ^W     WRAP  around  the  current  file.  That is, if the search
-                     reaches the end of the current  file  without  finding  a
-                     match,  the  search  continues from the first line of the
-                     current file up to the line where it started.  If the  ^W
+              ^W     WRAP around the current file.  That  is,  if  the  search
+                     reaches  the  end  of  the current file without finding a
+                     match, the search continues from the first  line  of  the
+                     current  file up to the line where it started.  If the ^W
                      modifier is set, the ^E modifier is ignored.
 
-              ^L     The  next  character  is taken literally; that is, it be‐
-                     comes part of the pattern even if it is one of the  above
+              ^L     The next character is taken literally; that  is,  it  be‐
+                     comes  part of the pattern even if it is one of the above
                      search modifier characters.
 
-       ?pattern
-              Search  backward  in  the  file for the N‐th line containing the
-              pattern.  The search starts at the last line displayed (but  see
+       ?[4mpattern[0m
+              Search backward in the file for the  N‐th  line  containing  the
+              pattern.   The search starts at the last line displayed (but see
               the [1m-a [22mand [1m-j [22moptions, which change this).
 
               Certain characters are special as in the / command:
@@ -290,15 +297,15 @@
                      Search for lines which do NOT match the pattern.
 
               ^E or *
-                     Search  multiple  files.   That is, if the search reaches
-                     the beginning of  the  current  file  without  finding  a
-                     match,  the  search continues in the previous file in the
+                     Search multiple files.  That is, if  the  search  reaches
+                     the  beginning  of  the  current  file  without finding a
+                     match, the search continues in the previous file  in  the
                      command line list.
 
               ^F or @
                      Begin the search at the last line of the last file in the
-                     command line list, regardless of what is  currently  dis‐
-                     played  on the screen or the settings of the [1m-a [22mor [1m-j [22mop‐
+                     command  line  list, regardless of what is currently dis‐
+                     played on the screen or the settings of the [1m-a [22mor [1m-j  [22mop‐
                      tions.
 
               ^K     As in forward searches.
@@ -307,42 +314,43 @@
 
               ^S     As in forward searches.
 
-              ^W     WRAP around the current file.  That  is,  if  the  search
+              ^W     WRAP  around  the  current  file.  That is, if the search
                      reaches the beginning of the current file without finding
-                     a  match,  the search continues from the last line of the
+                     a match, the search continues from the last line  of  the
                      current file up to the line where it started.
 
               ^L     As in forward searches.
 
-       ESC‐/pattern
+       ESC‐/[4mpattern[0m
               Same as "/*".
 
-       ESC‐?pattern
+       ESC‐?[4mpattern[0m
               Same as "?*".
 
-       n      Repeat previous search, for N‐th line containing the  last  pat‐
-              tern.   If the previous search was modified by ^N, the search is
-              made for the N‐th line NOT containing the pattern.  If the  pre‐
-              vious  search  was  modified  by ^E, the search continues in the
-              next (or previous) file if not satisfied in  the  current  file.
-              If  the  previous  search was modified by ^R, the search is done
-              without using regular expressions.  If the previous  search  was
-              modified  by  ^W,  the search wraps at the end (or beginning) of
-              the file.  There is no effect if the previous search  was  modi‐
+       n      Repeat  previous  search, for N‐th line containing the last pat‐
+              tern.  If the previous search was modified by ^N, the search  is
+              made  for the N‐th line NOT containing the pattern.  If the pre‐
+              vious search was modified by ^E, the  search  continues  in  the
+              next  (or  previous)  file if not satisfied in the current file.
+              If the previous search was modified by ^R, the  search  is  done
+              without  using  regular expressions.  If the previous search was
+              modified by ^W, the search wraps at the end  (or  beginning)  of
+              the  file.   There is no effect if the previous search was modi‐
               fied by ^F or ^K.
 
        N      Repeat previous search, but in the reverse direction.
 
-       ESC‐n  Repeat  previous  search, but crossing file boundaries.  The ef‐
+       ESC‐n  Repeat previous search, but crossing file boundaries.   The  ef‐
               fect is as if the previous search were modified by *.
 
-       ESC‐N  Repeat previous search, but in the reverse direction and  cross‐
+       ESC‐N  Repeat  previous search, but in the reverse direction and cross‐
               ing file boundaries.
 
-       ESC‐u  Undo  search  highlighting.   Turn  off  highlighting of strings
+       ESC‐u  Undo search highlighting.   Turn  off  highlighting  of  strings
               matching the current search pattern.  If highlighting is already
-              off because of a previous ESC‐u command, turn highlighting  back
-              on.   Any  search  command  will also turn highlighting back on.
+              off  because of a previous ESC‐u command, turn highlighting back
+              on.  Any search command will also  turn  highlighting  back  on.
+              Also  unselects  any OSC 8 hyperlink that is currently selected.
               (Highlighting can also be disabled by toggling the [1m-G [22moption; in
               that case search commands do not turn highlighting back on.)
 
@@ -350,125 +358,125 @@
               status  column  is  enabled  via  the [1m-J [22moption, this clears all
               search matches marked in the status column.
 
-       &pattern
+       &[4mpattern[0m
               Display only lines which match the pattern; lines which  do  not
-              match  the  pattern  are not displayed.  If pattern is empty (if
-              you type & immediately followed  by  ENTER),  any  filtering  is
-              turned  off, and all lines are displayed.  While filtering is in
-              effect, an ampersand  is  displayed  at  the  beginning  of  the
-              prompt, as a reminder that some lines in the file may be hidden.
-              Multiple  &  commands  may  be entered, in which case only lines
-              which match all of the patterns will be displayed.
+              match  the pattern are hidden.  If pattern is empty (if you type
+              & immediately followed by ENTER), any filtering is  turned  off,
+              and  all  lines are displayed.  While filtering is in effect, an
+              ampersand is displayed at the beginning of the prompt, as a  re‐
+              minder  that  some  lines in the file may be hidden.  Multiple &
+              commands may be entered, in which case only  lines  which  match
+              all of the patterns will be displayed.
 
               Certain characters are special as in the / command:
 
               ^N or !
                      Display only lines which do NOT match the pattern.
 
-              ^R     Don’t interpret regular expression  metacharacters;  that
+              ^R     Don’t  interpret  regular expression metacharacters; that
                      is, do a simple textual comparison.
 
-       :e [filename]
-              Examine  a  new file.  If the filename is missing, the "current"
-              file (see the :n and :p commands below) from the list  of  files
-              in  the  command line is re‐examined.  A percent sign (%) in the
-              filename is replaced by the name of the current file.   A  pound
-              sign  (#)  is  replaced  by  the name of the previously examined
-              file.  However, two consecutive percent  signs  are  simply  re‐
-              placed  with  a single percent sign.  This allows you to enter a
-              filename that contains a percent sign in the  name.   Similarly,
-              two  consecutive  pound  signs  are replaced with a single pound
-              sign.  The filename is inserted into the command  line  list  of
-              files  so  that it can be seen by subsequent :n and :p commands.
+       :e [[4mfilename[24m]
+              Examine a new file.  If the filename is missing,  the  "current"
+              file  (see  the :n and :p commands below) from the list of files
+              in the command line is re‐examined.  A percent sign (%)  in  the
+              filename  is  replaced by the name of the current file.  A pound
+              sign (#) is replaced by the  name  of  the  previously  examined
+              file.   However,  two  consecutive  percent signs are simply re‐
+              placed with a single percent sign.  This allows you to  enter  a
+              filename  that  contains a percent sign in the name.  Similarly,
+              two consecutive pound signs are replaced  with  a  single  pound
+              sign.   The  filename  is inserted into the command line list of
+              files so that it can be seen by subsequent :n and  :p  commands.
               If the filename consists of several files, they are all inserted
-              into the list of files and the first one is  examined.   If  the
+              into  the  list  of files and the first one is examined.  If the
               filename contains one or more spaces, the entire filename should
               be enclosed in double quotes (also see the [1m-" [22moption).
 
        ^X^V or E
-              Same  as :e.  Warning: some systems use ^V as a special literal‐
-              ization character.  On such systems, you may not be able to  use
+              Same as :e.  Warning: some systems use ^V as a special  literal‐
+              ization  character.  On such systems, you may not be able to use
               ^V.
 
-       :n     Examine  the next file (from the list of files given in the com‐
-              mand line).  If a number N is specified, the N‐th next  file  is
+       :n     Examine the next file (from the list of files given in the  com‐
+              mand  line).   If a number N is specified, the N‐th next file is
               examined.
 
        :p     Examine the previous file in the command line list.  If a number
               N is specified, the N‐th previous file is examined.
 
-       :x     Examine  the first file in the command line list.  If a number N
+       :x     Examine the first file in the command line list.  If a number  N
               is specified, the N‐th file in the list is examined.
 
        :d     Remove the current file from the list of files.
 
-       t      Go to the next tag, if there were more than one matches for  the
+       t      Go  to the next tag, if there were more than one matches for the
               current tag.  See the [1m-t [22moption for more details about tags.
 
-       T      Go  to the previous tag, if there were more than one matches for
+       T      Go to the previous tag, if there were more than one matches  for
               the current tag.
 
        ^O^N or ^On
               Search forward in the file for the N‐th next OSC 8 hyperlink.
 
        ^O^P or ^Op
-              Search backward in the file for the N‐th previous OSC  8  hyper‐
+              Search  backward  in the file for the N‐th previous OSC 8 hyper‐
               link.
 
        ^O^L or ^Ol
               Jump to the currently selected OSC 8 hyperlink.
 
        = or ^G or :f
-              Prints  some  information about the file being viewed, including
-              its name and the line number and byte offset of the bottom  line
-              being  displayed.  If possible, it also prints the length of the
-              file, the number of lines in the file and  the  percent  of  the
+              Prints some information about the file being  viewed,  including
+              its  name and the line number and byte offset of the bottom line
+              being displayed.  If possible, it also prints the length of  the
+              file,  the  number  of  lines in the file and the percent of the
               file above the last displayed line.
 
-       -      Followed  by one of the command line option letters (see OPTIONS
-              below), this will change the setting of that option and print  a
-              message  describing the new setting.  If a ^P (CONTROL‐P) is en‐
-              tered immediately after the dash, the setting of the  option  is
-              changed  but  no message is printed.  If the option letter has a
-              numeric value (such as [1m-b [22mor [1m-h[22m), or a string value (such as  [1m-P[0m
-              or  [1m-t[22m), a new value may be entered after the option letter.  If
-              no new value is entered, a message describing the  current  set‐
+       -      Followed by one of the command line option letters (see  OPTIONS
+              below),  this will change the setting of that option and print a
+              message describing the new setting.  If a ^P (CONTROL‐P) is  en‐
+              tered  immediately  after the dash, the setting of the option is
+              changed but no message is printed.  If the option letter  has  a
+              numeric  value (such as [1m-b [22mor [1m-h[22m), or a string value (such as [1m-P[0m
+              or [1m-t[22m), a new value may be entered after the option letter.   If
+              no  new  value is entered, a message describing the current set‐
               ting is printed and nothing is changed.
 
-       --     Like  the  -  command, but takes a long option name (see OPTIONS
-              below) rather than a single option letter.  Press ENTER  or  RE‐
-              TURN  after  typing the option name to change it.  You can enter
+       --     Like the - command, but takes a long option  name  (see  OPTIONS
+              below)  rather  than a single option letter.  Press ENTER or RE‐
+              TURN after typing the option name to change it.  You  can  enter
               just the beginning of an option name, then press TAB to find all
               option names which begin with that string.  A ^P immediately af‐
-              ter the second dash suppresses printing of a message  describing
+              ter  the second dash suppresses printing of a message describing
               the new setting, as in the - command.
 
        -+     Followed by one of the command line option letters this will re‐
-              set  the  option  to its default setting and print a message de‐
-              scribing the new setting.  (The  "-+[4mX[24m"  command  does  the  same
-              thing  as  "[1m-+X[22m"  on  the command line.)  This does not work for
+              set the option to its default setting and print  a  message  de‐
+              scribing  the  new  setting.   (The  "-+[4mX[24m" command does the same
+              thing as "[1m-+X[22m" on the command line.)  This  does  not  work  for
               string‐valued options.
 
-       --+    Like the -+ command, but takes a long option name rather than  a
+       --+    Like  the -+ command, but takes a long option name rather than a
               single option letter.
 
-       -!     Followed  by  one  of the command line option letters, this will
-              reset the option to the "opposite" of its  default  setting  and
-              print  a message describing the new setting.  This does not work
+       -!     Followed by one of the command line option  letters,  this  will
+              reset  the  option  to the "opposite" of its default setting and
+              print a message describing the new setting.  This does not  work
               for numeric or string‐valued options.
 
-       --!    Like the -! command, but takes a long option name rather than  a
+       --!    Like  the -! command, but takes a long option name rather than a
               single option letter.
 
-       _      (Underscore.)   Followed  by one of the command line option let‐
-              ters, this will print a message describing the  current  setting
+       _      (Underscore.)  Followed by one of the command line  option  let‐
+              ters,  this  will print a message describing the current setting
               of that option.  The setting of the option is not changed.
 
        __     (Double underscore.)  Like the _ (underscore) command, but takes
               a long option name rather than a single option letter.  You must
               press ENTER or RETURN after typing the option name.
 
-       +cmd   Causes  the specified cmd to be executed each time a new file is
+       +[4mcmd[24m   Causes the specified cmd to be executed each time a new file  is
               examined.  For example, +G causes [1mless [22mto initially display each
               file starting at the end rather than the beginning.
 
@@ -480,125 +488,119 @@
        The following seven commands may or may not be valid, depending on your
        particular installation.
 
-       v      Invokes an editor to edit the current file  being  viewed.   The
+       v      Invokes  an  editor  to edit the current file being viewed.  The
               editor is taken from the environment variable VISUAL if defined,
-              or  EDITOR if VISUAL is not defined, or defaults to "vi" if nei‐
-              ther VISUAL nor EDITOR is defined.  See also the  discussion  of
+              or EDITOR if VISUAL is not defined, or defaults to "vi" if  nei‐
+              ther  VISUAL  nor EDITOR is defined.  See also the discussion of
               LESSEDIT under the section on PROMPTS below.
 
-       ! shell‐command
-              Invokes  a shell to run the shell‐command given.  A percent sign
-              (%) in the command is replaced by the name of the current  file.
+       ! [4mshell‐command[0m
+              Invokes a shell to run the shell‐command given.  A percent  sign
+              (%)  in the command is replaced by the name of the current file.
               A pound sign (#) is replaced by the name of the previously exam‐
-              ined  file.   "!!"  repeats the last shell command.  "!" with no
+              ined file.  "!!" repeats the last shell command.   "!"  with  no
               shell command invokes an interactive shell.  If a ^P (CONTROL‐P)
               is entered immediately after the !, no "done" message is printed
               after the shell command is executed.  On Unix systems, the shell
-              is taken from the environment variable  SHELL,  or  defaults  to
-              "sh".   On  MS‐DOS,  Windows, and OS/2 systems, the shell is the
+              is  taken  from  the  environment variable SHELL, or defaults to
+              "sh".  On MS‐DOS, Windows, and OS/2 systems, the  shell  is  the
               normal command processor.
 
-       # shell‐command
-              Similar to the "!" command, except that the command is  expanded
+       # [4mshell‐command[0m
+              Similar  to the "!" command, except that the command is expanded
               in the same way as prompt strings.  For example, the name of the
               current file would be given as "%f".
 
-       | <m> shell‐command
-              <m>  represents  any  mark letter.  Pipes a section of the input
-              file to the given shell command.  The section of the file to  be
-              piped  is between the position marked by the letter and the cur‐
-              rent screen.  The entire current screen is included,  regardless
-              of  whether  the  marked position is before or after the current
-              screen.  <m> may also be ^ or $ to indicate beginning or end  of
-              file  respectively.   If <m> is . or newline, the current screen
-              is piped.  If a ^P (CONTROL‐P) is entered immediately after  the
-              mark  letter,  no "done" message is printed after the shell com‐
-              mand is executed.
+       | <[4mm[24m> [4mshell‐command[0m
+              <m> represents any mark letter.  Pipes a section  of  the  input
+              file  to  the given shell command.  If the marked line is before
+              the top line of the current screen, the section to be  piped  is
+              between  the  marked  line  and  the  bottom line of the current
+              screen, inclusive.  Otherwise (if the marked  line  is  the  top
+              line  of the current screen or after it) the section of the file
+              to be piped is between the top line of the  current  screen  and
+              the  marked line, inclusive.  <m> may also be ^ or $ to indicate
+              beginning or end of file respectively.  If <m> is . or  newline,
+              the current screen is piped.  If a ^P (CONTROL‐P) is entered im‐
+              mediately  after  the  mark letter, no "done" message is printed
+              after the shell command is executed.
 
-       s filename
+       s [4mfilename[0m
               Save the input to a file.  This works only if  the  input  is  a
               pipe, not an ordinary file.
 
        ^O^O
               Run  a shell command to open the URI in the current OSC 8 hyper‐
-              link, selected by a previous ^O^N or ^O^P command.  To find  the
-              shell command, the environment variable named "LESS_OSC8_xxx" is
-              read,  where  "xxx"  is the scheme from the URI (the part before
-              the first colon), or is empty if there is no colon in  the  URI.
-              The  value  of  the environment variable is then expanded in the
-              same way as prompt strings (in particular, any instance of  "%o"
-              is  replaced  with  the URI) to produce an OSC 8 "handler" shell
-              command.  The standard output from the handler  is  an  "opener"
-              shell command which is then executed to open the URI.
+              link, selected by a previous ^O^N or ^O^P  command.   The  shell
+              command   is   given   by   the   environment   variable   named
+              "LESS_OSC8_OPEN_xxx" where "xxx" is the scheme from the URI (the
+              part before the first colon), converted to lowercase.  If  there
+              is   no   colon   in   the   URI,   the   environment   variable
+              LESS_OSC8_OPEN_NONE is used.  The URI from the hyperlink is then
+              shell‐escaped and appended to the value of the environment vari‐
+              able after a space, and the resulting string is  executed  as  a
+              shell command.
 
-              There are two special cases:
+              For  example, if you wish to open https links by invoking a pro‐
+              gram called "mybrowser" with a "--new-window" option, you  could
+              set
 
-                     1.     If  the  URI begins with "#", the remainder of the
-                            URI is taken to be the value of the  id  parameter
-                            in  another  OSC 8 link in the same file, and ^O^O
-                            will simply jump to that link.
+              LESS_OSC8_OPEN_https="mybrowser --new-window"
 
-                     2.     If the opener begins with the characters ":e" fol‐
-                            lowed by whitespace and a filename,  then  instead
-                            of  running  the  opener  as  a shell command, the
-                            specified filename is opened in  the  current  in‐
-                            stance of [1mless[22m.
+              If  the handler command begins with "-", the command is not dis‐
+              played before it is executed.  If  the  handler  command  begins
+              with  ^P  (CONTROL‐P),  the "link done" message is not displayed
+              after it is executed.  If the handler  command  begins  with  ^P
+              followed by "-", neither the command nor the "link done" message
+              is displayed.
 
-              In  a simple case where the opener accepts the complete URI as a
-              command line parameter, the handler may be as simple as
+              If  you  attempt  to  open  a link with the "xxx" scheme and the
+              LESS_OSC8_OPEN_xxx   variable   is   not   set,   the   variable
+              LESS_OSC8_OPEN_ANY  is tried.  If neither LESS_OSC8_OPEN_xxx nor
+              LESS_OSC8_OPEN_ANY is set, links using the "xxx"  scheme  cannot
+              be   opened.    However,   there   is   a   default   value  for
+              LESS_OSC8_OPEN_ANY which invokes the program  [1mless-osc8-open[22m(1).
+              This  program will open links with the schemes "man" (by running
+              [1mman[22m(1)) or "file" (by running another instance of [1mless[22m(1) if the
+              file is local).  [1mless-osc8-open [22mshould  work  on  systems  which
+              provide a POSIX‐compatible shell.
 
-              echo mybrowser '%o'
+              Any  shell  metacharacters such as semicolons, dollar signs, am‐
+              persands, etc.  in the URI will be shell‐escaped before the  URI
+              is  appended  to the handler command.  If the handler passes the
+              URI or any substring of it to a shell, it should  take  care  to
+              appropriately  quote such strings, to prevent execution of unin‐
+              tended shell commands when opening a URI  which  contains  shell
+              metacharacters.
 
-              In other cases, the URI may need to be modified, so the  handler
-              may have to do some manipulation of the %o value.
+              As  a special case, if the URI begins with "#", the remainder of
+              the URI is taken to be the value of the id parameter in  another
+              OSC  8  link in the same file, and ^O^O will simply jump to that
+              link rather than running a handler program.
 
-              If   the   LESS_OSC8_xxx  variable  is  not  set,  the  variable
-              LESS_OSC8_ANY  is   tried.    If   neither   LESS_OSC8_xxx   nor
-              LESS_OSC8_ANY  is  set,  links  using the "xxx" scheme cannot be
-              opened.  However, there are default  handlers  for  the  schemes
-              "man" (used when LESS_OSC8_man is not set) and "file" (used when
-              LESS_OSC8_file  is  not set), which should work on systems which
-              provide the [1msed[22m(1) command and a shell  with  syntax  compatible
-              with  the Bourne shell [1msh[22m(1).  If you use LESS_OSC8_ANY to over‐
-              ride LESS_OSC8_file, you must set LESS_OSC8_file to "-" to indi‐
-              cate that the default value should not be used, and likewise for
-              LESS_OSC8_man.
-
-              The URI passed to an OSC8 handler via %o is  guaranteed  not  to
-              contain  any single quote or double quote characters, but it may
-              contain any other shell metacharacters such as semicolons,  dol‐
-              lar signs, ampersands, etc.  The handler should take care to ap‐
-              propriately  quote  parameters in the opener command, to prevent
-              execution of unintended shell commands in the case of opening  a
-              URI  which  contains shell metacharacters.  Also, since the han‐
-              dler command is expanded like a command prompt, any  metacharac‐
-              ters  interpreted  by  prompt  expansion  (such as percent, dot,
-              colon, backslash, etc.) must be escaped with  a  backslash  (see
-              the PROMPTS section for details).
-
-       ^X     When  the "Waiting for data" message is displayed, such as while
-              in the F command, pressing ^X will stop [1mless  [22mfrom  waiting  and
-              return  to a prompt.  This may cause [1mless [22mto think that the file
-              ends at the current position, so it may be necessary to use  the
-              R  or F command to see more data.  The [1m--intr [22moption can be used
-              to specify a different character to use  instead  of  ^X.   This
+       ^X     When the "Waiting for data" message is displayed, such as  while
+              in  the  F  command, pressing ^X will stop [1mless [22mfrom waiting and
+              return to a prompt.  This may cause [1mless [22mto think that the  file
+              ends  at the current position, so it may be necessary to use the
+              R or F command to see more data.  The [1m--intr [22moption can be  used
+              to  specify  a  different  character to use instead of ^X.  This
               command works only on systems that support the [1mpoll[22m(2) function.
               On systems without [1mpoll[22m(2), the interrupt character (usually ^C)
               can be used instead.
 
 [1mOPTIONS[0m
-       Command  line options are described below.  Most options may be changed
+       Command line options are described below.  Most options may be  changed
        while [1mless [22mis running, via the "-" command.
 
-       Some options may be given in one of two forms: either a  dash  followed
-       by  a  single  letter, or two dashes followed by a long option name.  A
-       long option name may be abbreviated as long as the abbreviation is  un‐
-       ambiguous.   For  example,  [1m--mouse  [22mmay  be abbreviated [1m--mou[22m, but not
+       Some  options  may be given in one of two forms: either a dash followed
+       by a single letter, or two dashes followed by a long  option  name.   A
+       long  option name may be abbreviated as long as the abbreviation is un‐
+       ambiguous.  For example, [1m--mouse [22mmay  be  abbreviated  [1m--mou[22m,  but  not
        [1m--mo[22m, since both [1m--mouse [22mand [1m--modelines [22mbegin with [1m--mo[22m.
 
        Some long option names are in uppercase, such as [1m--QUIT-AT-EOF[22m, as dis‐
        tinct from [1m--quit-at-eof[22m.  Such option names need only have their first
-       letter capitalized; the remainder of the name may be  in  either  case.
+       letter  capitalized;  the  remainder of the name may be in either case.
        For example, [1m--Quit-at-eof [22mis equivalent to [1m--QUIT-AT-EOF[22m.
 
        Options are also taken from the environment variable "LESS".  For exam‐
@@ -611,77 +613,77 @@
 
        LESS="-options"; export LESS
 
-       On  MS‐DOS  and  Windows,  you don’t need the quotes, but you should be
-       careful that any percent signs in the options  string  are  not  inter‐
+       On MS‐DOS and Windows, you don’t need the quotes,  but  you  should  be
+       careful  that  any  percent  signs in the options string are not inter‐
        preted as an environment variable expansion.
 
-       The  environment variable is parsed before the command line, so command
-       line options override the LESS environment variable.  If an option  ap‐
+       The environment variable is parsed before the command line, so  command
+       line  options override the LESS environment variable.  If an option ap‐
        pears in the LESS variable, it can be reset to its default value on the
        command line by beginning the command line option with "[1m-+[22m".
 
-       Some  options  like [1m-k [22mor [1m-D [22mrequire a string to follow the option let‐
-       ter.  The string for that option is considered to  end  when  a  dollar
+       Some options like [1m-k [22mor [1m-D [22mrequire a string to follow the  option  let‐
+       ter.   The  string  for  that option is considered to end when a dollar
        sign ($) is found.  For example, you can set two [1m-D [22moptions like this:
 
        LESS="Dnwb$Dsbw"
 
-       If  the  [1m--use-backslash  [22moption appears earlier in the options, then a
-       dollar sign or backslash may be included literally in an option  string
+       If the [1m--use-backslash [22moption appears earlier in the  options,  then  a
+       dollar  sign or backslash may be included literally in an option string
        by preceding it with a backslash.  If the [1m--use-backslash [22moption is not
-       in  effect, then backslashes are not treated specially, and there is no
+       in effect, then backslashes are not treated specially, and there is  no
        way to include a dollar sign in the option string.
 
        [1m-? [22mor [1m--help[0m
-              This option displays a summary of the commands accepted by  [1mless[0m
-              (the  same  as the h command).  (Depending on how your shell in‐
-              terprets the question mark, it may be  necessary  to  quote  the
+              This  option displays a summary of the commands accepted by [1mless[0m
+              (the same as the h command).  (Depending on how your  shell  in‐
+              terprets  the  question  mark,  it may be necessary to quote the
               question mark, thus: "[1m-\?[22m".)
 
        [1m-a [22mor [1m--search-skip-screen[0m
-              By  default,  forward searches start at the top of the displayed
-              screen and backwards searches start at the bottom  of  the  dis‐
-              played  screen (except for repeated searches invoked by the n or
-              N commands, which start after or before the  "target"  line  re‐
-              spectively;  see  the [1m-j [22moption for more about the target line).
-              The [1m-a [22moption causes forward searches to instead  start  at  the
-              bottom  of  the screen and backward searches to start at the top
+              By default, forward searches start at the top of  the  displayed
+              screen  and  backwards  searches start at the bottom of the dis‐
+              played screen (except for repeated searches invoked by the n  or
+              N  commands,  which  start after or before the "target" line re‐
+              spectively; see the [1m-j [22moption for more about the  target  line).
+              The  [1m-a  [22moption  causes forward searches to instead start at the
+              bottom of the screen and backward searches to start at  the  top
               of the screen, thus skipping all lines displayed on the screen.
 
        [1m-A [22mor [1m--SEARCH-SKIP-SCREEN[0m
-              Causes all forward searches (not just non‐repeated searches)  to
-              start  just  after the target line, and all backward searches to
-              start just before the target line.  Thus, forward searches  will
+              auses  all  forward searches (not just non‐repeated searches) to
+              start just after the target line, and all backward  searches  to
+              start  just before the target line.  Thus, forward searches will
               skip part of the displayed screen (from the first line up to and
-              including  the  target line).  Similarly backwards searches will
+              including the target line).  Similarly backwards  searches  will
               skip the displayed screen from the last line up to and including
               the target line.  This was the default behavior in less versions
               prior to 441.
 
        [1m-b[4m[22mn[24m or [1m--buffers=[4m[22mn[0m
-              Specifies the amount of buffer space  [1mless  [22mwill  use  for  each
-              file,  in  units of kilobytes (1024 bytes).  By default 64 KB of
-              buffer space is used for each file (unless the file is  a  pipe;
-              see  the  [1m-B  [22moption).   The  [1m-b [22moption specifies instead that [4mn[0m
+              Specifies  the  amount  of  buffer  space [1mless [22mwill use for each
+              file, in units of kilobytes (1024 bytes).  By default  64 KB  of
+              buffer  space  is used for each file (unless the file is a pipe;
+              see the [1m-B [22moption).  The [1m-b  [22moption  specifies  instead  that  [4mn[0m
               kilobytes of buffer space should be used for each file.  If [4mn[24m is
-              -1, buffer space is unlimited; that is, the entire file  can  be
+              -1,  buffer  space is unlimited; that is, the entire file can be
               read into memory.
 
        [1m-B [22mor [1m--auto-buffers[0m
               By default, when data is read from a pipe, buffers are allocated
               automatically as needed.  If a large amount of data is read from
-              the  pipe,  this  can cause a large amount of memory to be allo‐
-              cated.  The [1m-B [22moption  disables  this  automatic  allocation  of
-              buffers  for  pipes,  so that only 64 KB (or the amount of space
-              specified by the [1m-b [22moption) is used for the pipe.  Warning:  use
-              of  [1m-B  [22mcan result in erroneous display, since only the most re‐
+              the pipe, this can cause a large amount of memory  to  be  allo‐
+              cated.   The  [1m-B  [22moption  disables  this automatic allocation of
+              buffers for pipes, so that only 64 KB (or the  amount  of  space
+              specified  by the [1m-b [22moption) is used for the pipe.  Warning: use
+              of [1m-B [22mcan result in erroneous display, since only the  most  re‐
               cently viewed part of the piped data is kept in memory; any ear‐
-              lier data is lost.  Lost characters are  displayed  as  question
+              lier  data  is  lost.  Lost characters are displayed as question
               marks.
 
        [1m-c [22mor [1m--clear-screen[0m
-              Causes  full  screen  repaints  to  be painted from the top line
-              down.  By default, full screen repaints are  done  by  scrolling
+              Causes full screen repaints to be  painted  from  the  top  line
+              down.   By  default,  full screen repaints are done by scrolling
               from the bottom of the screen.
 
        [1m-C [22mor [1m--CLEAR-SCREEN[0m
@@ -689,13 +691,13 @@
 
        [1m-d [22mor [1m--dumb[0m
               The [1m-d [22moption suppresses the error message normally displayed if
-              the  terminal is dumb; that is, lacks some important capability,
+              the terminal is dumb; that is, lacks some important  capability,
               such as the ability to clear the screen or scroll backward.  The
-              [1m-d [22moption does not otherwise change the behavior of  [1mless  [22mon  a
+              [1m-d  [22moption  does  not otherwise change the behavior of [1mless [22mon a
               dumb terminal.
 
        [1m-Dx[4m[22mcolor[24m or [1m--color=x[4m[22mcolor[0m
-              Changes  the  color of different parts of the displayed text.  [1mx[0m
+              Changes the color of different parts of the displayed  text.   [1mx[0m
               is a single character which selects the type of text whose color
               is being set:
 
@@ -707,6 +709,8 @@
 
               H      Header lines and columns, set via the [1m--header [22moption.
 
+              J      Target line when highlighted via --hilite-target.
+
               M      Mark letters in the status column.
 
               N      Line numbers enabled via the [1m-N [22moption.
@@ -716,6 +720,9 @@
               R      The rscroll character.
 
               S      Search results.
+
+              T      The  tilde  lines  displayed after the end of the file or
+                     before the beginning of the file.
 
               W      The highlight enabled via the [1m-w [22moption.
 
@@ -793,7 +800,7 @@
               the  following  characters to set text attributes in addition to
               the color.
 
-              s or ˜ Standout (reverse video)
+              s or ~ Standout (reverse video)
 
               u or _ Underline
 
@@ -969,12 +976,12 @@
 
               Warning: certain environment variables such as LESS, LESSSECURE,
               LESSCHARSET and others, which are used early in startup,  cannot
-              be   set   in   a  file  specified  by  a  command  line  option
-              ([1m--lesskey[22m,[1m--lesskey-src [22mor [1m--lesskey-content[22m).   When  using  a
-              [1mlesskey  [22mfile  to  set environment variables, it is safer to use
-              the default lesskey file, or  to  specify  the  file  using  the
-              LESSKEYIN  or  LESSKEY_CONTENT environment variables rather than
-              using a command line option.
+              be  set in a file specified by a command line option ([1m--lesskey[22m,
+              [1m--lesskey-src [22mor [1m--lesskey-content[22m).  When using a [1mlesskey  [22mfile
+              to  set  environment  variables,  it is safer to use the default
+              lesskey file, or to specify the  file  using  the  LESSKEYIN  or
+              LESSKEY_CONTENT  environment  variables rather than using a com‐
+              mand line option.
 
        [1m-K [22mor [1m--quit-on-intr[0m
               Causes [1mless [22mto exit immediately (with status 2) when  an  inter‐
@@ -1184,27 +1191,29 @@
               Displays the version number of [1mless[22m.
 
        [1m-w [22mor [1m--hilite-unread[0m
-              Temporarily highlights the first  "new"  line  after  a  forward
-              movement of a full page.  The first "new" line is the line imme‐
-              diately  following  the  line  previously  at  the bottom of the
-              screen.  Also highlights the target line after a g or p command.
-              The highlight is removed at the next command which causes  move‐
-              ment.  If the [1m--status-line [22moption is in effect, the entire line
-              (the  width  of the screen) is highlighted.  Otherwise, only the
-              text in the line is highlighted, unless the [1m-J [22moption is in  ef‐
-              fect, in which case only the status column is highlighted.
+              Temporarily highlights the first "new" line after a movement  of
+              a  full page.  The first "new" line is the line immediately fol‐
+              lowing the line previously at the bottom of  the  screen.   Also
+              highlights  the  target  line after a g or p command.  The high‐
+              light is removed at the next command which causes movement.   If
+              the  [1m--status-line  [22moption  is  in  effect, the entire line (the
+              width of the screen) is highlighted.  Otherwise, only  the  text
+              in  the  line is highlighted, unless the [1m-J [22moption is in effect,
+              in which case only the status column is highlighted.
 
        [1m-W [22mor [1m--HILITE-UNREAD[0m
               Like [1m-w[22m, but temporarily highlights the first new line after any
-              forward movement command larger than one line.
+              movement command larger than one line.
 
        [1m-x[4m[22mn[24m,... or [1m--tabs=[4m[22mn[24m,...
-              Sets  tab  stops.  If only one [4mn[24m is specified, tab stops are set
-              at multiples of [4mn[24m.  If multiple values separated by  commas  are
-              specified,  tab  stops are set at those positions, and then con‐
-              tinue with the same spacing  as  the  last  two.   For  example,
-              "[1m-x9,17[22m" will set tabs at positions 9, 17, 25, 33, etc.  The de‐
-              fault for [4mn[24m is 8.
+              Sets tab stops.  If only one [4mn[24m is specified, tab stops  are  set
+              at  multiples  of [4mn[24m.  If multiple values separated by commas are
+              specified, tab stops are set at those positions, and  then  con‐
+              tinue  with  the same spacing as the last two.  Position numbers
+              are zero‐based: the leftmost position is 0, the next is 1,  etc.
+              For  example, "[1m-x8,16[22m" is the same as "[1m-x8[22m" and sets tabs at po‐
+              sition 8, 16, 24, 32, etc.  "[1m-x10,14,20[22m" will set tabs at  posi‐
+              tion 10, 14, 20, 26, 32, etc.  The default for [4mn[24m is 8.
 
        [1m-X [22mor [1m--no-init[0m
               Disables sending the termcap initialization and deinitialization
@@ -1288,17 +1297,85 @@
               due to the use of the [1m-E [22mor [1m-F [22moption, while commands  specified
               by the [1m+ [22moption are executed even if [1mless [22mexits immediately.
 
+       [1m--emouse=[4m[22mfeatures[0m
+              [4mfeatures[24m  is  a comma‐separated list of mouse features to be en‐
+              abled, selected from this list:
+
+              vscroll
+                     Scrolling the mouse wheel down or  up  moves  forward  or
+                     backward in the file.  The number of lines to scroll when
+                     the  wheel  is  moved can be set by the [1m--wheel-lines [22mop‐
+                     tion.  The [1m--rmouse  [22moption  reverses  the  direction  of
+                     movement.
+
+              vdrag  Holding  down  the  left  button  and dragging up or down
+                     moves forward or backward in the file.
+
+              hscroll
+                     Scrolling the side scroll wheel left or right moves  left
+                     or  right  in  the file.  The number of columns to scroll
+                     when the wheel is moved can be set by  the  [1m--wheel-lines[0m
+                     option.   The  [1m--rmouse  [22moption reverses the direction of
+                     movement.
+
+              hdrag  Holding down the left button and dragging left  or  right
+                     moves left or right in the file.
+
+              lclick Left‐clicking  sets  the  "#"  mark to the line where the
+                     mouse is clicked.  If a left‐click is performed with  the
+                     mouse  cursor on an OSC 8 hyperlink, the hyperlink is se‐
+                     lected as if by the ^O^N command.   If  a  left‐click  is
+                     performed  with  the  mouse  cursor on an OSC 8 hyperlink
+                     which is already selected, the hyperlink is opened as  if
+                     by the ^O^O command.
+
+              rclick Right‐clicking  (or  clicking  any  button other than the
+                     left one) returns to the "#" mark position.
+
+              scroll Same as "vscroll,hscroll".
+
+              drag   Same as "vdrag,hdrag".
+
+              hmove  Same as "hscroll,hdrag".
+
+              vmove  Same as "vscroll,vdrag".
+
+              move   Same as "vmove,hmove".
+
+              click  Same as "lclick,rclick".
+
+              all    Same as "move,click".
+
+              Each feature name may be abbreviated as long as the abbreviation
+              is unambiguous.  If [4mfeatures[24m is set to "‐", all  mouse  features
+              are disabled.  Mouse input works only on terminals which support
+              X11 mouse reporting, and on Windows.
+
+       [1m--end-prompt=[4m[22mstring[0m
+              Specifies a string which is printed immediately after the prompt
+              is  erased.  As with the [1m--prompt [22moption, the first character of
+              the string determines which prompt the string  will  be  printed
+              after  ("[1ms[22m"  for the short prompt, "[1mm[22m" for the medium prompt, or
+              "[1mM[22m" for the long prompt).  Special characters in the string  are
+              processed  as  described in the PROMPTS section, in the same way
+              as prompts specified by the [1m--prompt [22moption.  If set to  a  dash
+              ([1m-[22m), nothing is printed after the prompt is erased.  This option
+              can  be useful if the prompt string has been modified to contain
+              an escape sequence that puts the terminal in a mode which should
+              be cleared when the prompt is erased.
+
        [1m--exit-follow-on-close[0m
-              When  using  the  "F" command on a pipe, [1mless [22mwill automatically
-              stop waiting for more data when the input side of  the  pipe  is
+              When using the "F" command on a pipe,  [1mless  [22mwill  automatically
+              stop  waiting  for  more data when the input side of the pipe is
               closed.
 
        [1m--file-size[0m
               If [1m--file-size [22mis specified, [1mless [22mwill determine the size of the
-              file  immediately  after opening the file.  Then the "=" command
-              will display the number of lines in the file.  Normally this  is
-              not  done, because it can be slow if the input file is non‐seek‐
-              able (such as a pipe) and is large.
+              file immediately after opening the file.  With this  option  en‐
+              abled, the = command and the long prompt will display the number
+              of lines in the file.  Normally this is not done, because it can
+              be  slow  if the input file is non‐seekable (such as a pipe) and
+              is large.
 
        [1m--follow-name[0m
               Normally, if the input file is renamed while an F command is ex‐
@@ -1343,108 +1420,103 @@
               While the [1m--header [22moption  is  active,  lines  longer  than  the
               screen width are truncated, and the [1m-S [22moption is ignored.
 
+       [1m--hilite-target[0m
+              Highlights the "target" line, as specified by the -j option.  If
+              the  [1m--status-line  [22moption  is  in  effect, the entire line (the
+              width of the screen) is highlighted.  Otherwise, only  the  text
+              in  the  line is highlighted, unless the [1m-J [22moption is in effect,
+              in which case only the status column is highlighted.
+
        [1m--incsearch[0m
-              Subsequent  search commands will be "incremental"; that is, [1mless[0m
-              will advance to the next line containing the search  pattern  as
+              Subsequent search commands will be "incremental"; that is,  [1mless[0m
+              will  advance  to the next line containing the search pattern as
               each character of the pattern is typed in.
 
        [1m--intr=[4m[22mc[0m
-              Use  the  character [4mc[24m instead of ^X to interrupt a read when the
-              "Waiting for data" message is displayed.  [4mc[24m  must  be  an  ASCII
-              character;  that  is,  one with a value between 1 and 127 inclu‐
-              sive.  A caret followed by a single character  can  be  used  to
+              Use the character [4mc[24m instead of ^X to interrupt a read  when  the
+              "Waiting  for  data"  message  is displayed.  [4mc[24m must be an ASCII
+              character; that is, one with a value between 1  and  127  inclu‐
+              sive.   A  caret  followed  by a single character can be used to
               specify a control character.
 
        [1m--line-num-width=[4m[22mn[0m
-              Sets  the minimum width of the line number field when the -N op‐
+              Sets the minimum width of the line number field when the -N  op‐
               tion is in effect to [4mn[24m characters.  The default is 7.
 
        [1m--match-shift=[4m[22mn[0m
-              When [1m-S [22mis in effect, if a search match is not  visible  because
-              it  is  shifted  to  the  left or right of the currently visible
-              screen, the text will horizontally  shift  to  ensure  that  the
-              search  match  is  visible.   This  option selects the column in
+              When  [1m-S  [22mis in effect, if a search match is not visible because
+              it is shifted to the left or  right  of  the  currently  visible
+              screen,  the  text  will  horizontally  shift to ensure that the
+              search match is visible.  This  option  selects  the  column  in
               which the first character of the search match will be placed af‐
               ter the shift.  In other words, there will be [4mn[24m characters visi‐
               ble to the left of the search match.
 
-              Alternately, the number may be specified as a  fraction  of  the
-              width  of  the screen, starting with a decimal point: .5 is half
+              Alternately,  the  number  may be specified as a fraction of the
+              width of the screen, starting with a decimal point: .5  is  half
               of the screen width, .3 is three tenths of the screen width, and
-              so on.  If the number is specified as  a  fraction,  the  actual
-              number  of scroll positions is recalculated if the terminal win‐
+              so  on.   If  the  number is specified as a fraction, the actual
+              number of scroll positions is recalculated if the terminal  win‐
               dow is resized.
 
        [1m--modelines=[4m[22mn[0m
-              Before displaying a file, [1mless [22mwill read the first  [4mn[24m  lines  to
-              try  to find a vim‐compatible [4mmodeline[24m.  If [4mn[24m is zero, [1mless [22mdoes
+              Before  displaying  a  file, [1mless [22mwill read the first [4mn[24m lines to
+              try to find a vim‐compatible [4mmodeline[24m.  If [4mn[24m is zero, [1mless  [22mdoes
               not try to find modelines.  By using a modeline, the file itself
               can specify the tab stops that should be used when viewing it.
 
               A modeline contains, anywhere in the line, a program name ("vi",
-              "vim", "ex", or "less"), followed by a colon, possibly  followed
-              by  the  word "set", and finally followed by zero or more option
-              settings.  If the word "set" is used, option settings are  sepa‐
-              rated  by spaces, and end at the first colon.  If the word "set"
-              is not used, option settings may be separated by  either  spaces
-              or  colons.   The  word "set" is required if the program name is
-              "less" but optional if any of the other three  names  are  used.
+              "vim",  "ex", or "less"), followed by a colon, possibly followed
+              by the word "set", and finally followed by zero or  more  option
+              settings.   If the word "set" is used, option settings are sepa‐
+              rated by spaces, and end at the first colon.  If the word  "set"
+              is  not  used, option settings may be separated by either spaces
+              or colons.  The word "set" is required if the  program  name  is
+              "less"  but  optional  if any of the other three names are used.
               If any option setting is of the form "tabstop=[4mn[24m" or "ts=[4mn[24m", then
-              tab  stops  are automatically set as if [1m--tabs=[4m[22mn[24m had been given.
+              tab stops are automatically set as if [1m--tabs=[4m[22mn[24m had  been  given.
               See the [1m--tabs [22mdescription for acceptable values of [4mn[24m.
 
        [1m--mouse[0m
-              Enables mouse input: scrolling the mouse wheel down  moves  for‐
-              ward  in  the file, scrolling the mouse wheel up moves backwards
-              in the file, left‐click sets the "#" mark to the line where  the
-              mouse  is clicked, and right‐click (or any other) returns to the
-              "#" mark position.  Holding down the left  button  and  dragging
-              also  moves  in the file.  If a left‐click is performed with the
-              mouse cursor on an OSC 8 hyperlink, the hyperlink is selected as
-              if by the ^O^N command.  If a left‐click is performed  with  the
-              mouse  cursor  on  an OSC 8 hyperlink which is already selected,
-              the hyperlink is opened as if by the ^O^O command.   The  number
-              of  lines  to  scroll  when the wheel is moved can be set by the
-              [1m--wheel-lines [22moption.  Mouse input works only on terminals which
-              support X11 mouse reporting, and on Windows.
+              Enabling [1m--mouse [22mis the same as [1m--emouse=vmove,click[22m.  Disabling
+              [1m--mouse [22mis the same as [1m--emouse=‐[22m.
 
        [1m--MOUSE[0m
-              Like [1m--mouse[22m, except the direction scrolled on mouse wheel move‐
-              ment is reversed.
+              Like [1m--mouse [22mwith [1m--rmouse[22m.
 
        [1m--no-edit-warn[0m
               Don’t print a warning message when using the v command on a file
-              which was opened using a LESSOPEN preprocessor  (see  the  INPUT
+              which  was  opened  using a LESSOPEN preprocessor (see the INPUT
               PREPROCESSOR section below).
 
        [1m--no-keypad[0m
-              Disables  sending the keypad initialization and deinitialization
+              Disables sending the keypad initialization and  deinitialization
               strings to the terminal.  This is sometimes useful if the keypad
               strings make the numeric keypad behave in an undesirable manner.
 
        [1m--no-histdups[0m
-              This option changes the behavior so that if a search  string  or
-              file  name  is  typed  in, and the same string is already in the
+              This  option  changes the behavior so that if a search string or
+              file name is typed in, and the same string  is  already  in  the
               history list, the existing copy is removed from the history list
-              before the new one is added.  Thus, a given string  will  appear
-              only  once  in  the history list.  Normally, a string may appear
+              before  the  new one is added.  Thus, a given string will appear
+              only once in the history list.  Normally, a  string  may  appear
               multiple times.
 
        [1m--no-number-headers[0m
-              Header lines (defined via the [1m--header [22moption) are not  assigned
+              Header  lines (defined via the [1m--header [22moption) are not assigned
               line numbers.  Line number 1 is assigned to the first line after
               any header lines.
 
        [1m--no-paste[0m
               If the terminal supports [1mxterm[22m‐compatible "bracketed paste", any
-              text  pasted  into [1mless [22mis ignored, except that one line of text
-              may be pasted into the command line at the bottom of the  screen
-              (search  strings,  file names, etc).  That is, the first newline
-              of text pasted into the command line and any text  that  follows
+              text pasted into [1mless [22mis ignored, except that one line  of  text
+              may  be pasted into the command line at the bottom of the screen
+              (search strings, file names, etc).  That is, the  first  newline
+              of  text  pasted into the command line and any text that follows
               it is ignored.
 
        [1m--no-search-header-lines[0m
-              Searches  do  not include header lines, but still include header
+              Searches do not include header lines, but still  include  header
               columns.
 
        [1m--no-search-header-columns[0m
@@ -1457,49 +1529,60 @@
        [1m--no-vbell[0m
               Disables the terminal’s visual bell.
 
+       [1m--past-eof[0m
+              Normally scrolling commands (other than J, K, ESC‐SPACE and ESC‐
+              b) stop scrolling when end‐of‐file is reached scrolling forward,
+              or beginning‐of‐file is reached scrolling backward.  This option
+              makes all scrolling commands continue past end‐of‐file or begin‐
+              ning‐of‐file.
+
        [1m--proc-backspace[0m
-              If set, backspaces are handled as if neither the [1m-u  [22moption  nor
+              If  set,  backspaces are handled as if neither the [1m-u [22moption nor
               the [1m-U [22moption were set.  That is, a backspace adjacent to an un‐
-              derscore  causes  text  to be displayed in underline mode, and a
-              backspace between identical characters cause  text  to  be  dis‐
-              played  in  boldface  mode.  This option overrides the [1m-u [22mand [1m-U[0m
-              options, so that display of backspaces can be  controlled  sepa‐
+              derscore causes text to be displayed in underline  mode,  and  a
+              backspace  between  identical  characters  cause text to be dis‐
+              played in boldface mode.  This option overrides the  [1m-u  [22mand  [1m-U[0m
+              options,  so  that display of backspaces can be controlled sepa‐
               rate from tabs and carriage returns.  If not set, backspace dis‐
               play is controlled by the [1m-u [22mand [1m-U [22moptions.
 
        [1m--PROC-BACKSPACE[0m
-              If  set,  backspaces  are  handled as if the [1m-U [22moption were set;
+              If set, backspaces are handled as if the  [1m-U  [22moption  were  set;
               that is backspaces are treated as control characters.
 
        [1m--proc-return[0m
               If set, carriage returns are handled as if neither the [1m-u [22moption
-              nor the [1m-U [22moption were set.  That is, a carriage return  immedi‐
+              nor  the [1m-U [22moption were set.  That is, a carriage return immedi‐
               ately before a newline is deleted.  This option overrides the [1m-u[0m
-              and  [1m-U [22moptions, so that display of carriage returns can be con‐
-              trolled separate from that of backspaces and tabs.  If not  set,
+              and [1m-U [22moptions, so that display of carriage returns can be  con‐
+              trolled  separate from that of backspaces and tabs.  If not set,
               carriage return display is controlled by the [1m-u [22mand [1m-U [22moptions.
 
        [1m--PROC-RETURN[0m
-              If  set,  carriage  returns are handled as if the [1m-U [22moption were
+              If set, carriage returns are handled as if the  [1m-U  [22moption  were
               set; that is carriage returns are treated as control characters.
 
        [1m--proc-tab[0m
               If set, tabs are handled as if the [1m-U [22moption were not set.  That
-              is, tabs are expanded to spaces.  This option overrides  the  [1m-U[0m
-              option,  so that display of tabs can be controlled separate from
-              that of backspaces and carriage returns.  If not set,  tab  dis‐
+              is,  tabs  are expanded to spaces.  This option overrides the [1m-U[0m
+              option, so that display of tabs can be controlled separate  from
+              that  of  backspaces and carriage returns.  If not set, tab dis‐
               play is controlled by the [1m-U [22moption.
 
        [1m--PROC-TAB[0m
-              If  set,  tabs are handled as if the [1m-U [22moption were set; that is
+              If set, tabs are handled as if the [1m-U [22moption were set;  that  is
               tabs are treated as control characters.
 
        [1m--redraw-on-quit[0m
               When  quitting,  after  sending  the  terminal  deinitialization
               string, redraws the entire last screen.  On terminals whose ter‐
               minal deinitialization string causes the terminal to switch from
-              an  alternate  screen, this makes the last screenful of the cur‐
+              an alternate screen, this makes the last screenful of  the  cur‐
               rent file remain visible after [1mless [22mhas quit.
+
+       [1m--rmouse[0m
+              Reverses  the normal direction of scrolling when mouse scrolling
+              is enabled via [1m--emouse=vscroll [22mor [1m--emouse=hscroll[22m.
 
        [1m--rscroll=[4m[22mc[0m
               This option changes the character used to mark truncated  lines.
@@ -1533,63 +1616,64 @@
        [1m--status-line[0m
               If a line is marked, the entire line (rather than just the  sta‐
               tus  column)  is highlighted.  Also lines highlighted due to the
-              [1m-w [22moption will have the entire line highlighted.  If [1m--use-color[0m
-              is set, the line is colored rather than highlighted.
+              [1m-w [22mor [1m--hilite-target [22moption will have  the  entire  line  high‐
+              lighted.  If [1m--use-color [22mis set, the line is colored rather than
+              highlighted.
 
        [1m--use-backslash[0m
-              This option changes the interpretations of options which  follow
+              This  option changes the interpretations of options which follow
               this one.  After the [1m--use-backslash [22moption, any backslash in an
-              option  string  is  removed and the following character is taken
-              literally.  This allows a dollar sign to be included  in  option
+              option string is removed and the following  character  is  taken
+              literally.   This  allows a dollar sign to be included in option
               strings.
 
        [1m--use-color[0m
-              Enables  colored  text  in various places.  The [1m-D [22moption can be
-              used to change the colors.  Colored text works only if the  ter‐
-              minal  supports  ANSI  color  escape  sequences  (as  defined in
+              Enables colored text in various places.  The [1m-D  [22moption  can  be
+              used  to change the colors.  Colored text works only if the ter‐
+              minal supports  ANSI  color  escape  sequences  (as  defined  in
               https://www.ecma-international.org/publications-and-standards/
               standards/ecma-48).
 
        [1m--wheel-lines=[4m[22mn[0m
-              Set the number of lines  to  scroll  when  the  mouse  wheel  is
-              scrolled  and  the  [1m--mouse [22mor [1m--MOUSE [22moption is in effect.  The
-              default is 1 line.
+              Set  the  number  of  lines  or columns to scroll when the mouse
+              wheel is scrolled and the [1m--mouse [22mor [1m--MOUSE [22moption  is  in  ef‐
+              fect.  The default is 1 line or column.
 
        [1m--wordwrap[0m
-              When the [1m-S [22moption is not in use, wrap each line at a  space  or
-              tab  if possible, so that a word is not split between two lines.
+              When  the  [1m-S [22moption is not in use, wrap each line at a space or
+              tab if possible, so that a word is not split between two  lines.
               The default is to wrap at any character.
 
-       [1m--     [22mA command line argument of "[1m--[22m" marks the end  of  option  argu‐
-              ments.   Any  arguments  following this are interpreted as file‐
+       [1m--     [22mA  command  line  argument of "[1m--[22m" marks the end of option argu‐
+              ments.  Any arguments following this are  interpreted  as  file‐
               names.  This can be useful when viewing a file whose name begins
               with a "-" or "+".  Otherwise, option arguments and filename ar‐
               guments can be intermixed; that is, option arguments do not need
-              to appear before  filename  arguments,  unless  the  environment
+              to  appear  before  filename  arguments,  unless the environment
               variable POSIXLY_CORRECT is set.
 
-       +      If  a  command  line option begins with [1m+[22m, the remainder of that
-              option is taken to be an initial command to [1mless[22m.  For  example,
-              +G  tells  [1mless  [22mto start at the end of the file rather than the
-              beginning, and +/xyz tells it to start at the  first  occurrence
-              of  "xyz"  in  the file.  As a special case, +<number> acts like
+       +      If a command line option begins with [1m+[22m, the  remainder  of  that
+              option  is taken to be an initial command to [1mless[22m.  For example,
+              +G tells [1mless [22mto start at the end of the file  rather  than  the
+              beginning,  and  +/xyz tells it to start at the first occurrence
+              of "xyz" in the file.  As a special case,  +<number>  acts  like
               +<number>g; that is, it starts the display at the specified line
-              number (however, see the caveat under the  "g"  command  above).
-              If  the  option  starts  with ++, the initial command applies to
-              every file being viewed, not just the first one.  The +  command
+              number  (however,  see  the caveat under the "g" command above).
+              If the option starts with ++, the  initial  command  applies  to
+              every  file being viewed, not just the first one.  The + command
               described previously may also be used to set (or change) an ini‐
               tial command for every file.  Also see the [1m--cmd [22moption.
 
 [1mLINE EDITING[0m
-       When  entering a command line at the bottom of the screen (for example,
-       a filename for the :e command, or the pattern for  a  search  command),
+       When entering a command line at the bottom of the screen (for  example,
+       a  filename  for  the :e command, or the pattern for a search command),
        certain keys can be used to manipulate the command line.  Most commands
-       have  an alternate form in [ brackets ] which can be used if a key does
-       not exist on a particular keyboard.  (Note  that  the  forms  beginning
-       with  ESC do not work on some MS‐DOS and Windows systems because ESC is
-       the line erase character.)  Any of these special keys  may  be  entered
-       literally  by  preceding  it with the "literal" character, either ^V or
-       ^A.  A backslash itself may also be entered literally by  entering  two
+       have an alternate form in [ brackets ] which can be used if a key  does
+       not  exist  on  a  particular keyboard.  (Note that the forms beginning
+       with ESC do not work on some MS‐DOS and Windows systems because ESC  is
+       the  line  erase  character.)  Any of these special keys may be entered
+       literally by preceding it with the "literal" character,  either  ^V  or
+       ^A.   A  backslash itself may also be entered literally by entering two
        backslashes.
 
        LEFTARROW [ ESC‐h ]
@@ -1599,7 +1683,7 @@
               Move the cursor one space to the right.
 
        ^LEFTARROW [ ESC‐b or ESC‐LEFTARROW ]
-              (That  is, CONTROL and LEFTARROW simultaneously.)  Move the cur‐
+              (That is, CONTROL and LEFTARROW simultaneously.)  Move the  cur‐
               sor one word to the left.
 
        ^RIGHTARROW [ ESC‐w or ESC‐RIGHTARROW ]
@@ -1613,42 +1697,42 @@
               Move the cursor to the end of the line.
 
        BACKSPACE
-              Delete the character to the left of the cursor,  or  cancel  the
+              Delete  the  character  to the left of the cursor, or cancel the
               command if the command line is empty.
 
-       DELETE or [ ESC‐x ]
+       DELETE [ ESC‐x ]
               Delete the character under the cursor.
 
        ^BACKSPACE [ ESC‐BACKSPACE ]
-              (That  is,  CONTROL  and  BACKSPACE simultaneously.)  Delete the
+              (That is, CONTROL and  BACKSPACE  simultaneously.)   Delete  the
               word to the left of the cursor.
 
        ^DELETE [ ESC‐X or ESC‐DELETE ]
-              (That is, CONTROL and DELETE simultaneously.)  Delete  the  word
+              (That  is,  CONTROL and DELETE simultaneously.)  Delete the word
               under the cursor.
 
        UPARROW [ ESC‐k ]
-              Retrieve  the  previous  command  line.  If you first enter some
-              text and then press UPARROW, it will retrieve the previous  com‐
+              Retrieve the previous command line.  If  you  first  enter  some
+              text  and then press UPARROW, it will retrieve the previous com‐
               mand which begins with that text.
 
        DOWNARROW [ ESC‐j ]
-              Retrieve  the  next  command line.  If you first enter some text
-              and then press DOWNARROW, it  will  retrieve  the  next  command
+              Retrieve the next command line.  If you first  enter  some  text
+              and  then  press  DOWNARROW,  it  will retrieve the next command
               which begins with that text.
 
-       TAB    Complete  the partial filename to the left of the cursor.  If it
-              matches more than one filename, the first match is entered  into
-              the  command  line.   Repeated  TABs  will  cycle thru the other
+       TAB    Complete the partial filename to the left of the cursor.  If  it
+              matches  more than one filename, the first match is entered into
+              the command line.  Repeated TABs will cycle  through  the  other
               matching filenames.  If the completed filename is a directory, a
-              "/" is appended to the filename.  (On MS‐DOS  and  Windows  sys‐
-              tems,  a "\" is appended.)  The environment variable LESSSEPARA‐
-              TOR can be used to specify a different character to append to  a
+              "/"  is  appended  to the filename.  (On MS‐DOS and Windows sys‐
+              tems, a "\" is appended.)  The environment variable  LESSSEPARA‐
+              TOR  can be used to specify a different character to append to a
               directory name.
 
        BACKTAB (SHIFT‐TAB) [ ESC‐TAB ]
-              Like  TAB, but cycles in the reverse direction thru the matching
-              filenames.
+              Like TAB, but cycles in the reverse direction through the match‐
+              ing filenames.
 
        ^L     Complete the partial filename to the left of the cursor.  If  it
               matches more than one filename, all matches are entered into the
@@ -1806,13 +1890,13 @@
 
        For compatibility with previous versions of [1mless[22m, the input  preproces‐
        sor or pipe is not used if [1mless [22mis viewing standard input.  However, if
-       the  first  character of LESSOPEN is a dash (-), the input preprocessor
+       the  first  character of LESSOPEN is a dash ([1m-[22m), the input preprocessor
        is used on standard input as well as other files.  In  this  case,  the
        dash  is  not  considered  to  be part of the preprocessor command.  If
        standard input is being viewed, the input preprocessor is passed a file
        name consisting of a single dash.  Similarly, if the first two  charac‐
-       ters  of  LESSOPEN  are vertical bar and dash (|-) or two vertical bars
-       and a dash (||-), the input pipe is used on standard input as  well  as
+       ters  of  LESSOPEN  are vertical bar and dash ([1m|-[22m) or two vertical bars
+       and a dash ([1m||-[22m), the input pipe is used on standard input as  well  as
        other files.  Again, in this case the dash is not considered to be part
        of the input pipe command.
 
@@ -2045,34 +2129,30 @@
 
        %m     Replaced by the total number of input files.
 
-       %o     Replaced by the URI of the currently selected OSC  8  hyperlink,
-              or a question mark if no hyperlink is selected.  This is used by
-              OSC 8 handlers as explained in the ^O^O command description.
-
-       %p[4mX[24m    Replaced  by  the  percent into the current input file, based on
-              byte offsets.  The line used is determined by the [4mX[24m as with  the
+       %p[4mX[24m    Replaced by the percent into the current input  file,  based  on
+              byte  offsets.  The line used is determined by the [4mX[24m as with the
               %b option.
 
-       %P[4mX[24m    Replaced  by  the  percent into the current input file, based on
-              line numbers.  The line used is determined by the [4mX[24m as with  the
+       %P[4mX[24m    Replaced by the percent into the current input  file,  based  on
+              line  numbers.  The line used is determined by the [4mX[24m as with the
               %b option.
 
-       %Q     Replaced  by the percent of the last column of text displayed on
-              the screen compared to the length of the longest line  currently
+       %Q     Replaced by the percent of the last column of text displayed  on
+              the  screen compared to the length of the longest line currently
               displayed (that is, %C divided by %W).  Note that using this se‐
               quence can make displaying the prompt be slower than usual.
 
        %s     Same as %B.
 
-       %t     Causes  any  trailing spaces to be removed.  Usually used at the
+       %t     Causes any trailing spaces to be removed.  Usually used  at  the
               end of the string, but may appear anywhere.
 
-       %T     Normally expands to the word "file".  However if  viewing  files
-              via  a  tags  list  using  the [1m-t [22moption, it expands to the word
+       %T     Normally  expands  to the word "file".  However if viewing files
+              via a tags list using the [1m-t [22moption,  it  expands  to  the  word
               "tag".
 
        %W     Replaced by the width of the longest line currently displayed on
-              the screen.  Note that using this sequence can  make  displaying
+              the  screen.   Note that using this sequence can make displaying
               the prompt be slower than usual.
 
        %x     Replaced by the name of the next input file in the list.
@@ -2080,15 +2160,15 @@
        If any item is unknown (for example, the file size if input is a pipe),
        a question mark is printed instead.
 
-       The  format  of  the  prompt string can be changed depending on certain
-       conditions.  A question mark followed by a single character  acts  like
-       an  "IF": depending on the following character, a condition is evaluat‐
-       ed.  If the condition is true, any characters  following  the  question
-       mark  and  condition  character,  up  to  a period, are included in the
-       prompt.  If the condition is false, such characters are  not  included.
-       A  colon appearing between the question mark and the period can be used
+       The format of the prompt string can be  changed  depending  on  certain
+       conditions.   A  question mark followed by a single character acts like
+       an "IF": depending on the following character, a condition is  evaluat‐
+       ed.   If  the  condition is true, any characters following the question
+       mark and condition character, up to  a  period,  are  included  in  the
+       prompt.   If  the condition is false, such characters are not included.
+       A colon appearing between the question mark and the period can be  used
        to establish an "ELSE": any characters between the colon and the period
-       are included in the string if and only if the IF  condition  is  false.
+       are  included  in  the string if and only if the IF condition is false.
        Condition characters (which follow a question mark) may be:
 
        ?a     True if any characters have been included in the prompt so far.
@@ -2097,13 +2177,13 @@
 
        ?B     True if the size of current input file is known.
 
-       ?c     True if the text is horizontally shifted (%c is not zero).
+       ?c     True if the text is horizontally shifted (%c is greater than 1).
 
        ?d[4mX[24m    True if the page number of the specified line is known.
 
        ?e     True if at end‐of‐file.
 
-       ?f     True  if  there is an input filename (that is, if input is not a
+       ?f     True if there is an input filename (that is, if input is  not  a
               pipe).
 
        ?l[4mX[24m    True if the line number of the specified line is known.
@@ -2114,46 +2194,48 @@
 
        ?n     True if this is the first prompt in a new input file.
 
-       ?p[4mX[24m    True if the percent into the current input file, based  on  byte
+       ?O     True if an OSC 8 hyperlink is selected.
+
+       ?p[4mX[24m    True  if  the percent into the current input file, based on byte
               offsets, of the specified line is known.
 
-       ?P[4mX[24m    True  if  the percent into the current input file, based on line
+       ?P[4mX[24m    True if the percent into the current input file, based  on  line
               numbers, of the specified line is known.
 
-       ?Q     True if %Q is less than 100.  Note that using this sequence  can
+       ?Q     True  if %Q is less than 100.  Note that using this sequence can
               make displaying the prompt be slower than usual.
 
        ?s     Same as "?B".
 
-       ?x     True  if there is a next input file (that is, if the current in‐
+       ?x     True if there is a next input file (that is, if the current  in‐
               put file is not the last one).
 
        Any characters other than the special ones (question mark, colon, peri‐
-       od, percent, and backslash) become literally part of the  prompt.   Any
-       of  the  special  characters may be included in the prompt literally by
+       od,  percent,  and backslash) become literally part of the prompt.  Any
+       of the special characters may be included in the  prompt  literally  by
        preceding it with a backslash.
 
        Some examples:
 
        ?f%f:Standard input.
 
-       This prompt prints the filename, if known; otherwise the string  "Stan‐
+       This  prompt prints the filename, if known; otherwise the string "Stan‐
        dard input".
 
        ?f%f .?ltLine %lt:?pt%pt\%:?btByte %bt:-...
 
-       This  prompt  would print the filename, if known.  The filename is fol‐
-       lowed by the line number, if known, otherwise  the  percent  if  known,
+       This prompt would print the filename, if known.  The filename  is  fol‐
+       lowed  by  the  line  number, if known, otherwise the percent if known,
        otherwise the byte offset if known.  Otherwise, a dash is printed.  No‐
-       tice  how each question mark has a matching period, and how the % after
+       tice how each question mark has a matching period, and how the %  after
        the %pt is included literally by escaping it with a backslash.
 
        ?n?f%f .?m(%T %i of %m) ..?e(END) ?x- Next\: %x..%t
 
-       This prints the filename if this is the first prompt in  a  file,  fol‐
-       lowed  by  the  "file  N  of N" message if there is more than one input
-       file.  Then, if we are at end‐of‐file, the string  "(END)"  is  printed
-       followed  by  the name of the next file, if there is one.  Finally, any
+       This  prints  the  filename if this is the first prompt in a file, fol‐
+       lowed by the "file N of N" message if there  is  more  than  one  input
+       file.   Then,  if  we are at end‐of‐file, the string "(END)" is printed
+       followed by the name of the next file, if there is one.   Finally,  any
        trailing spaces are truncated.  This is the default prompt.  For refer‐
        ence, here are the defaults for the other two prompts [1m-m [22mand [1m-M [22mrespec‐
        tively).  Each is broken into two lines here for readability only.
@@ -2169,22 +2251,22 @@
        ?f%f .?m(%T %i of %m) .?ltlines %lt-%lb?L/%L. .
             byte %bB?s/%s. ?e(END) :?pB%pB\%..?c (column %c).%t
 
-       The prompt expansion features are also used for another purpose: if  an
-       environment  variable LESSEDIT is defined, it is used as the command to
-       be executed when the v command is invoked.  The LESSEDIT string is  ex‐
-       panded  in  the  same way as the prompt strings.  The default value for
+       The  prompt expansion features are also used for another purpose: if an
+       environment variable LESSEDIT is defined, it is used as the command  to
+       be  executed when the v command is invoked.  The LESSEDIT string is ex‐
+       panded in the same way as the prompt strings.  The  default  value  for
        LESSEDIT is:
 
             %E ?lm+%lm. %g
 
        Note that this expands to the editor name, followed by a + and the line
-       number, followed by the shell‐escaped file name.  If your  editor  does
-       not  accept the "+linenumber" syntax, or has other differences in invo‐
-       cation syntax, the LESSEDIT variable can be changed to modify this  de‐
+       number,  followed  by the shell‐escaped file name.  If your editor does
+       not accept the "+linenumber" syntax, or has other differences in  invo‐
+       cation  syntax, the LESSEDIT variable can be changed to modify this de‐
        fault.
 
 [1mSECURITY[0m
-       When  the  environment  variable LESSSECURE is set to 1, [1mless [22mruns in a
+       When the environment variable LESSSECURE is set to 1, [1mless  [22mruns  in  a
        "secure" mode.  In this mode, these features are disabled:
 
        edit      the edit command (v)
@@ -2212,66 +2294,66 @@
 
        tags      use of tags files ([1m-t[22m)
 
-       The LESSSECURE_ALLOW environment variable can be set to  a  comma‐sepa‐
-       rated  list  of  names  of  features which are selectively enabled when
+       The  LESSSECURE_ALLOW  environment variable can be set to a comma‐sepa‐
+       rated list of names of features  which  are  selectively  enabled  when
        LESSSECURE is set.  Each feature name is the first word in each line in
-       the above list.  A feature name may be abbreviated as long as  the  ab‐
-       breviation   is   unambiguous.    For   example,  if  LESSSECURE=1  and
+       the  above  list.  A feature name may be abbreviated as long as the ab‐
+       breviation  is  unambiguous.   For   example,   if   LESSSECURE=1   and
        LESSSECURE_ALLOW=hist,edit were set, all of the above features would be
        disabled except for history files and the edit command.
 
-       Less can also be compiled to be permanently in "secure" mode.  In  that
+       Less  can also be compiled to be permanently in "secure" mode.  In that
        case, the LESSSECURE and LESSSECURE_ALLOW variables are ignored.
 
 [1mCOMPATIBILITY WITH MORE[0m
        If the environment variable LESS_IS_MORE is set to 1, or if the program
-       is  invoked  via  a file link named "more" and the environment variable
+       is invoked via a file link named "more" and  the  environment  variable
        LESS_IS_MORE is not set to 0, [1mless [22mbehaves (mostly) in conformance with
-       the POSIX [1mmore[22m(1) command specification.  In this  mode,  [1mless  [22mbehaves
+       the  POSIX  [1mmore[22m(1)  command specification.  In this mode, [1mless [22mbehaves
        differently in these ways:
 
        The [1m-e [22moption works differently.  If the [1m-e [22moption is not set, [1mless [22mbe‐
-       haves  as if the [1m-e [22moption were set.  If the [1m-e [22moption is set, [1mless [22mbe‐
+       haves as if the [1m-e [22moption were set.  If the [1m-e [22moption is set, [1mless  [22mbe‐
        haves as if the [1m-E [22moption were set.
 
-       The [1m-m [22moption works differently.  If the [1m-m  [22moption  is  not  set,  the
-       medium  prompt  is used, and it is prefixed with the string "--More--".
+       The  [1m-m  [22moption  works  differently.   If the [1m-m [22moption is not set, the
+       medium prompt is used, and it is prefixed with the  string  "--More--".
        If the [1m-m [22moption is set, the short prompt is used.
 
-       The [1m-n [22moption acts like the [1m-z [22moption.  The normal behavior of  the  [1m-n[0m
+       The  [1m-n  [22moption acts like the [1m-z [22moption.  The normal behavior of the [1m-n[0m
        option is unavailable in this mode.
 
-       The  parameter  to  the  [1m-p [22moption is taken to be a [1mless [22mcommand rather
+       The parameter to the [1m-p [22moption is taken to be  a  [1mless  [22mcommand  rather
        than a search pattern.
 
-       The LESS environment variable is  ignored,  and  the  MORE  environment
+       The  LESS  environment  variable  is  ignored, and the MORE environment
        variable is used in its place.
 
 [1mENVIRONMENT VARIABLES[0m
        Environment variables may be specified either in the system environment
-       as  usual,  or  in a [1mlesskey[22m(1) file.  If environment variables are de‐
+       as usual, or in a [1mlesskey[22m(1) file.  If environment  variables  are  de‐
        fined in more than one place, variables defined in a local lesskey file
        take precedence over variables defined in the system environment, which
        take precedence over variables defined in the system‐wide lesskey file.
 
        COLUMNS
               Sets the number of columns on the screen.  Takes precedence over
-              the number of columns specified by the TERM variable.   (But  if
+              the  number  of columns specified by the TERM variable.  (But if
               you  have  a  windowing  system  which  supports  TIOCGWINSZ  or
-              WIOCGETD, the window system’s idea  of  the  screen  size  takes
+              WIOCGETD,  the  window  system’s  idea  of the screen size takes
               precedence over the LINES and COLUMNS environment variables.)
 
        EDITOR The name of the editor (used for the v command).
 
-       HOME   Name  of  the user’s home directory (used to find a lesskey file
+       HOME   Name of the user’s home directory (used to find a  lesskey  file
               on Unix and OS/2 systems).
 
        HOMEDRIVE, HOMEPATH
-              Concatenation of the HOMEDRIVE and  HOMEPATH  environment  vari‐
+              Concatenation  of  the  HOMEDRIVE and HOMEPATH environment vari‐
               ables is the name of the user’s home directory if the HOME vari‐
               able is not set (only in the Windows version).
 
-       INIT   Name  of  the user’s init directory (used to find a lesskey file
+       INIT   Name of the user’s init directory (used to find a  lesskey  file
               on OS/2 systems).
 
        LANG   Language for determining the character set.
@@ -2282,27 +2364,27 @@
        LESS   Options which are passed to [1mless [22mautomatically.
 
        LESSANSIENDCHARS
-              Characters which may end an ANSI color escape sequence  (default
+              Characters  which may end an ANSI color escape sequence (default
               "m").
 
        LESSANSIMIDCHARS
-              Characters  which  may  appear between the ESC character and the
-              end  character  in  an  ANSI  color  escape  sequence   (default
+              Characters which may appear between the ESC  character  and  the
+              end   character  in  an  ANSI  color  escape  sequence  (default
               "0123456789:;[?!"'#%()*+ ").
 
        LESSANSIOSCALLOW
               A comma‐separated list of OSC types which are output directly to
-              the  terminal  when  [1m-R [22mis in effect (default "8"; that is, only
+              the terminal when [1m-R [22mis in effect (default "8";  that  is,  only
               OSC 8 sequences are output directly).
 
        LESSANSIOSCCHARS
-              Characters which may follow an ESC character to mark  the  start
-              of  an  "OS  Command" sequence.  All characters that follow this
-              character up to a String Terminator (ESC‐backslash or  BEL)  are
-              considered  to  be part of the OSC sequence (default "]").  If a
-              character in LESSANSIOSCCHARS is followed by  an  asterisk,  se‐
-              quences  that begin with that character in the file contents are
-              passed through to the terminal; otherwise  only  sequences  that
+              Characters  which  may follow an ESC character to mark the start
+              of an "OS Command" sequence.  All characters  that  follow  this
+              character  up  to a String Terminator (ESC‐backslash or BEL) are
+              considered to be part of the OSC sequence (default "]").   If  a
+              character  in  LESSANSIOSCCHARS  is followed by an asterisk, se‐
+              quences that begin with that character in the file contents  are
+              passed  through  to  the terminal; otherwise only sequences that
               appear in a prompt string are passed through.
 
        LESSBINFMT
@@ -2319,21 +2401,21 @@
 
        LESSECHO
               Name of the lessecho program (default "lessecho").  The lessecho
-              program  is needed to expand metacharacters, such as * and ?, in
+              program is needed to expand metacharacters, such as * and ?,  in
               filenames on Unix systems.
 
        LESSEDIT
-              Editor prototype string (used for the v command).   See  discus‐
+              Editor  prototype  string (used for the v command).  See discus‐
               sion under PROMPTS.
 
        LESSGLOBALTAGS
-              Name  of  the command used by the [1m-t [22moption to find global tags.
-              Normally should be set to "global" if your system has the  [1mglob‐[0m
+              Name of the command used by the [1m-t [22moption to find  global  tags.
+              Normally  should be set to "global" if your system has the [1mglob‐[0m
               [1mal[22m(1) command.  If not set, global tags are not used.
 
        LESSHISTFILE
-              Name  of  the  history file used to remember search commands and
-              shell commands between invocations of [1mless[22m.  If set  to  "-"  or
+              Name of the history file used to remember  search  commands  and
+              shell  commands  between  invocations of [1mless[22m.  If set to "-" or
               "/dev/null", a history file is not used.  The default depends on
               the operating system, but is usually:
 
@@ -2354,34 +2436,34 @@
               Name of the default [4mlesskey[24m [4msource[24m file.
 
        LESSKEY
-              Name   of   the  default  [4mlesskey[24m  [4mbinary[24m  file.  (Not  used  if
+              Name  of  the  default  [4mlesskey[24m  [4mbinary[24m  file.  (Not   used   if
               "$LESSKEYIN" exists.)
 
        LESSKEY_CONTENT
-              The  value  is  parsed  as  if  it  were  the  parameter  of   a
+              The   value  is  parsed  as  if  it  were  the  parameter  of  a
               [1m--lesskey-content [22moption.
 
        LESSKEYIN_SYSTEM
               Name of the default system‐wide [4mlesskey[24m [4msource[24m file.
 
        LESSKEY_SYSTEM
-              Name  of  the default system‐wide [4mlesskey[24m [4mbinary[24m file. (Not used
+              Name of the default system‐wide [4mlesskey[24m [4mbinary[24m file.  (Not  used
               if "$LESSKEYIN_SYSTEM" exists.)
 
        LESSMETACHARS
-              List of characters which are considered "metacharacters" by  the
+              List  of characters which are considered "metacharacters" by the
               shell.
 
        LESSMETAESCAPE
-              Prefix  which  less will add before each metacharacter in a com‐
+              Prefix which less will add before each metacharacter in  a  com‐
               mand sent to the shell (default "\").
 
        LESSNOCONFIG
               If set to "-", all environment variables except TERM are ignored
-              (treated as if they were not set).  If set to a  comma‐separated
-              list  of  environment  variable names, all environment variables
-              except TERM and those in the list are ignored.  In  either  case
-              (if  set to any non‐empty value), all [1mlesskey [22mfiles are also ig‐
+              (treated  as if they were not set).  If set to a comma‐separated
+              list of environment variable names,  all  environment  variables
+              except  TERM  and those in the list are ignored.  In either case
+              (if set to any non‐empty value), all [1mlesskey [22mfiles are also  ig‐
               nored.
 
        LESSOPEN
@@ -2391,7 +2473,7 @@
               Runs less in "secure" mode.  See discussion under SECURITY.
 
        LESSSECURE_ALLOW
-              Enables individual  features  which  are  normally  disabled  by
+              Enables  individual  features  which  are  normally  disabled by
               LESSSECURE.  See discussion under SECURITY.
 
        LESSSEPARATOR
@@ -2406,36 +2488,40 @@
 
        LESS_COLUMNS
               Sets the number of columns on the screen.  Unlike COLUMNS, takes
-              precedence  over the system’s idea of the screen size, so it can
-              be used to make [1mless [22muse less than the full  screen  width.   If
-              set  to  a  negative  number, sets the number of columns used to
+              precedence over the system’s idea of the screen size, so it  can
+              be  used  to  make [1mless [22muse less than the full screen width.  If
+              set to a negative number, sets the number  of  columns  used  to
               this much less than the actual screen width.
 
        LESS_LINES
-              Sets the number of lines on the  screen.   Unlike  LINES,  takes
-              precedence  over the system’s idea of the screen size, so it can
-              be used to make [1mless [22muse less than the full screen  height.   If
-              set  to a negative number, sets the number of lines used to this
-              much less than the actual screen height.   When  set,  [1mless  [22mre‐
+              Sets  the  number  of  lines on the screen.  Unlike LINES, takes
+              precedence over the system’s idea of the screen size, so it  can
+              be  used  to make [1mless [22muse less than the full screen height.  If
+              set to a negative number, sets the number of lines used to  this
+              much  less  than  the  actual screen height.  When set, [1mless [22mre‐
               paints the entire screen on every movement command, so scrolling
               may be slower.
 
        LESS_DATA_DELAY
-              Duration  (in milliseconds) after starting to read data from the
-              input, after which the "Waiting for data" message will  be  dis‐
+              Duration (in milliseconds) after starting to read data from  the
+              input,  after  which the "Waiting for data" message will be dis‐
               played.  The default is 4000 (4 seconds).
 
        LESS_IS_MORE
               Emulate the [1mmore[22m(1) command.
 
-       LESS_OSC8_xxx
-              Where  "xxx"  is  a URI scheme such as "http" or "file", sets an
+       LESS_OSC8_OPEN_xxx
+              Where "xxx" is a URI scheme such as "http" or  "file",  sets  an
               OSC 8 handler for opening OSC 8 links containing a URI with that
               scheme.
 
-       LESS_OSC8_ANY
+       LESS_OSC8_OPEN_ANY
               Sets an OSC 8 handler for opening OSC 8 links for which there is
-              no specific LESS_OSC8_xxx handler set for the "xxx" scheme.
+              no specific LESS_OSC8_OPEN_xxx handler set for the "xxx" scheme.
+
+       LESS_OSC8_OPEN_NONE
+              Sets  an  OSC 8 handler for opening OSC 8 links which contain no
+              scheme (that is, there is no colon in the URI).
 
        LESS_SHELL_LINES
               When the [1m-F [22moption is set, [1mless [22mexits automatically if the  num‐
@@ -2562,4 +2648,4 @@
        For more information, see the less homepage at
        https://greenwoodsoftware.com/less.
 
-less 692                          29 Jan 2026                          [4mLESS[24m(1)
+less 702                          22 May 2026                          [4mLESS[24m(1)

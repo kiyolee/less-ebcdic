@@ -509,7 +509,7 @@ static void text_score(constant char *data, ssize_t n, int umax, int *_text_coun
  * be used later to compare to st_size from stat(2) to see if the file
  * is lying about its size.
  */
-public lbool bin_file(int f, ssize_t *n)
+public int bin_file(int f, ssize_t *n)
 {
     ssize_t l;
 	char data[256];
@@ -519,12 +519,12 @@ public lbool bin_file(int f, ssize_t *n)
 	constant int umax = 4;
 
 	if (!seekable(f))
-		return FALSE;
+		return (0);
 	if (less_lseek(f, (less_off_t)0, SEEK_SET) == BAD_LSEEK)
-		return FALSE;
+		return (0);
 	*n = read(f, data, sizeof(data));
 	if (*n <= umax)
-		return FALSE;
+		return (0);
 
 	/*
 	 * Detection makes no sense if there is no defined binary character.
@@ -542,14 +542,14 @@ public lbool bin_file(int f, ssize_t *n)
 	if (!is_bin && (a_text_lr_count < e_text_lr_count))
 		return (2);
 	if (is_bin && !utf_mode)
-		return TRUE;
+		return (1);
 	/*
 	 * Call it a binary file if there are more than 5 binary characters
 	 * in the first 256 bytes of the file.
 	 */
 	if (utf_mode && a_bin_count > 5)
-		return TRUE;
-	return FALSE;
+		return (1);
+	return (0);
 }
 
 /*
@@ -779,7 +779,11 @@ public char * lglob(constant char *afilename)
 	}
 	lessecho = lgetenv("LESSECHO");
 	if (isnullenv(lessecho))
+#ifdef LIBEXECDIR
+		lessecho = LIBEXECDIR "/lessecho";
+#else
 		lessecho = "lessecho";
+#endif
 	/*
 	 * Invoke lessecho, and read its output (a globbed list of filenames).
 	 */
