@@ -396,6 +396,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lmsg.c"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lsystem.c"
 				>
 			</File>
@@ -486,6 +490,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\win32\defines.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\funcs.h"
 				>
 			</File>
@@ -498,7 +506,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\lesskey.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lessmsg.inc"
+				>
+			</File>
+			<File
 				RelativePath="..\..\lglob.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\lmsg.h"
 				>
 			</File>
 			<File

@@ -260,7 +260,7 @@ static void check_modelines(void)
 /*
  * Close a pipe opened via popen.
  */
-static void close_pipe(FILE *pipefd)
+public void close_pipe(FILE *pipefd)
 {
 	int status;
 	char *p;
@@ -297,7 +297,7 @@ static void close_pipe(FILE *pipefd)
 		if (s <= 128)
 		{
 			parg.p_int = s;
-			error("Input preprocessor failed (status %d)", &parg);
+			error(LM(Input_preprocessor_failed), &parg);
 			return;
 		}
 		/*
@@ -326,21 +326,21 @@ static void close_pipe(FILE *pipefd)
 			ch_length() != NULL_POSITION)
 		{
 			parg.p_string = signal_message(sig);
-			error("Input preprocessor terminated: %s", &parg);
+			error(LM(Input_preprocessor_terminated_X), &parg);
 		}
 		return;
 	}
 	if (status != 0)
 	{
 		parg.p_int = status;
-		error("Input preprocessor exited with status %x", &parg);
+		error(LM(Input_preprocessor_exited_with_status_X), &parg);
 	}
 }
 
 /*
  * Drain and close an input pipe if needed.
  */
-public void close_altpipe(IFILE ifile)
+static void close_altpipe(IFILE ifile)
 {
 	FILE *altpipe = get_altpipe(ifile);
 	if (altpipe != NULL && !(ch_getflags() & CH_KEEPOPEN))
@@ -422,7 +422,7 @@ public int edit(constant char *filename)
 /*
  * Clean up what edit_ifile did before error return.
  */
-static int edit_error(constant char *filename, constant char *alt_filename, void *altpipe, IFILE ifile)
+static int edit_error(constant char *filename, constant char *alt_filename, FILE *altpipe, IFILE ifile)
 {
 	if (alt_filename != NULL)
 	{
@@ -457,7 +457,7 @@ public int edit_ifile(IFILE ifile)
 	constant char *filename;
 	constant char *open_filename;
 	char *alt_filename;
-	void *altpipe;
+	FILE *altpipe;
 	IFILE was_curr_ifile;
 	char *p;
 	PARG parg;
@@ -578,7 +578,9 @@ public int edit_ifile(IFILE ifile)
 						 * Ask user if we should proceed.
 						 */
 						parg.p_string = filename;
-						answer = query("\"%s\" may be a binary file.  See it anyway? ", &parg);
+						answer = query(LM(X_may_be_a_binary_file), &parg);
+						if (answer == 'q')
+							quit(QUIT_OK);
 						if (answer != 'y' && answer != 'Y')
 						{
 							close(f);
@@ -592,7 +594,7 @@ public int edit_ifile(IFILE ifile)
 						 * Ask user if we should proceed with EBCDIC->ASCII conversion.
 						 */
 						parg.p_string = filename;
-						answer = query("\"%s\" may be an EBCDIC file.  See it with conversion to ASCII? ", &parg);
+						answer = query(LM(X_may_be_an_EBCDIC_file), &parg);
 						if (answer == 'y' || answer == 'Y')
 						{
 							ebcdic_conv = OPT_ON;
@@ -605,7 +607,7 @@ public int edit_ifile(IFILE ifile)
 						 * Ask user if we should proceed without conversion.
 						 */
 						parg.p_string = filename;
-						answer = query("\"%s\" may be an ASCII file.  See it without conversion from EBCDIC? ", &parg);
+						answer = query(LM(X_may_be_an_ASCII_file), &parg);
 						if (answer == 'y' || answer == 'Y')
 						{
 							ebcdic_conv = OPT_OFF;
@@ -618,7 +620,7 @@ public int edit_ifile(IFILE ifile)
 		{
 			PARG parg;
 			parg.p_string = filename;
-			error("%s is a terminal (use -f to open it)", &parg);
+			error(LM(X_is_a_terminal), &parg);
 			return edit_error(filename, alt_filename, altpipe, ifile);
 		}
 	}
@@ -676,10 +678,11 @@ public int edit_ifile(IFILE ifile)
 #endif
 #if HAVE_STAT_INO
 		/* Remember the i-number and device of the opened file. */
-		if (strcmp(open_filename, "-") != 0)
+		curr_ino = curr_dev = 0;
+		if (!is_fake_pathname(open_filename))
 		{
-			struct stat statbuf;
-			int r = stat(open_filename, &statbuf);
+			less_stat_t statbuf;
+			int r = less_stat(open_filename, &statbuf);
 			if (r == 0)
 			{
 				curr_ino = statbuf.st_ino;
@@ -716,8 +719,13 @@ public int edit_ifile(IFILE ifile)
 		if (strcmp(filename, FAKE_HELPFILE) && strcmp(filename, FAKE_EMPTYFILE))
 		{
 			char *qfilename = shell_quote(filename);
-			cmd_addhist(ml_examine, qfilename, 1);
-			free(qfilename);
+			if (qfilename == NULL)
+				cmd_addhist(ml_examine, filename, TRUE);
+			else
+			{
+				cmd_addhist(ml_examine, qfilename, TRUE);
+				free(qfilename);
+			}
 		}
 		if (want_filesize)
 			scan_eof();
@@ -953,8 +961,8 @@ public int edit_stdin(void)
 {
 	if (isatty(fd0))
 	{
-		error("Missing filename (\"less --help\" for help)", NULL_PARG);
-		quit(QUIT_OK);
+		error(LM(Missing_filename), NULL_PARG);
+		quit(QUIT_ERROR);
 	}
 	return (edit("-"));
 }
@@ -973,8 +981,6 @@ public void cat_file(void)
 }
 
 #if LOGFILE
-
-#define OVERWRITE_OPTIONS "Overwrite, Append, Don't log, or Quit?"
 
 /*
  * If the user asked for a log file and our input file
@@ -1017,7 +1023,7 @@ public void use_logfile(constant char *filename)
 		 * Ask user what to do.
 		 */
 		parg.p_string = filename;
-		answer = query("Warning: \"%s\" exists; "OVERWRITE_OPTIONS" ", &parg);
+		answer = query(LM(X_exists), &parg);
 	}
 
 loop:
@@ -1050,7 +1056,7 @@ loop:
 		 * Eh?
 		 */
 
-		answer = query(OVERWRITE_OPTIONS" (Type \"O\", \"A\", \"D\" or \"Q\") ", NULL_PARG);
+		answer = query(LM(Overwrite), NULL_PARG);
 		goto loop;
 	}
 
@@ -1060,7 +1066,7 @@ loop:
 		 * Error in opening logfile.
 		 */
 		parg.p_string = filename;
-		error("Cannot write to \"%s\"", &parg);
+		error(LM(Cannot_write_to_X), &parg);
 		return;
 	}
 	SET_BINARY(logfile);

@@ -79,12 +79,15 @@
     <ClInclude Include="..\..\funcs.h" />
     <ClInclude Include="..\..\lang.h" />
     <ClInclude Include="..\..\less.h" />
+    <ClInclude Include="..\..\lesskey.h" />
     <ClInclude Include="..\..\lglob.h" />
+    <ClInclude Include="..\..\lmsg.h" />
     <ClInclude Include="..\..\option.h" />
     <ClInclude Include="..\..\pattern.h" />
     <ClInclude Include="..\..\pckeys.h" />
     <ClInclude Include="..\..\position.h" />
     <ClInclude Include="..\..\regexp.h" />
+    <ClInclude Include="..\..\win32\defines.h" />
     <ClInclude Include="..\..\xbuf.h" />
   </ItemGroup>
   <ItemGroup>
@@ -106,6 +109,7 @@
     <ClCompile Include="..\..\lesskey_parse.c" />
     <ClCompile Include="..\..\line.c" />
     <ClCompile Include="..\..\linenum.c" />
+    <ClCompile Include="..\..\lmsg.c" />
     <ClCompile Include="..\..\lsystem.c" />
     <ClCompile Include="..\..\main.c" />
     <ClCompile Include="..\..\mark.c" />
@@ -129,7 +133,13 @@
   <ItemGroup>
     <ResourceCompile Include="..\..\win32\less.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\lessmsg.inc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <Target Name="AfterClean">
+    <Exec Command="if exist $(OutDir)eless.exe del $(OutDir)eless.exe /F /Q 2&gt;nul" />
+  </Target>
 </Project>
