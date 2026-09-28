@@ -481,4 +481,4 @@
        Mark Nudelman
        Report bugs at https://github.com/gwsw/less/issues.
 
-less 702                          22 May 2026                       [4mLESSKEY[24m(1)
+less 704                          30 May 2026                       [4mLESSKEY[24m(1)

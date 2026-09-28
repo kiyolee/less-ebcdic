@@ -2,7 +2,7 @@
 
 less pager enhanced to detect/read EBCDIC files.
 
-This version is less-702.
+This version is less-704.
 
 For whoever needs to deal with EBCDIC files very often, this can be handy.
 
